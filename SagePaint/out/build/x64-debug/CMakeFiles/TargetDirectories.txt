@@ -1,5 +1,0 @@
-C:/Users/Meetsys/Desktop/SagePaint/SagePaint/out/build/x64-debug/CMakeFiles/edit_cache.dir
-C:/Users/Meetsys/Desktop/SagePaint/SagePaint/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
-C:/Users/Meetsys/Desktop/SagePaint/SagePaint/out/build/x64-debug/SagePaint/CMakeFiles/SagePaint.dir
-C:/Users/Meetsys/Desktop/SagePaint/SagePaint/out/build/x64-debug/SagePaint/CMakeFiles/edit_cache.dir
-C:/Users/Meetsys/Desktop/SagePaint/SagePaint/out/build/x64-debug/SagePaint/CMakeFiles/rebuild_cache.dir
