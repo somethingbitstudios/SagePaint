@@ -13,7 +13,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-
+#include "./ui/Canvas.h"
+#include "ui/Triangle.h"
 
 
 typedef struct Vertex
@@ -60,10 +61,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
-
 void MainApp() {
 	DLOG("\n----------------------------------<[DEBUG_MODE]>----------------------------------\n");
 	DLOG("version: 0.03");
+
 
 	
 
@@ -89,42 +90,12 @@ void MainApp() {
 	glewInit();
 	glfwSwapInterval(1);
 
-	// NOTE: OpenGL error checks have been omitted for brevity
+	
+	
+	Triangle triangle = Triangle();
+	
 
-	GLuint vertex_buffer;
-	glGenBuffers(1, &vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-	glCompileShader(vertex_shader);
-
-	const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-	glCompileShader(fragment_shader);
-
-	const GLuint program = glCreateProgram();
-	glAttachShader(program, vertex_shader);
-	glAttachShader(program, fragment_shader);
-	glLinkProgram(program);
-
-	const GLint mvp_location = glGetUniformLocation(program, "MVP");
-	const GLint vpos_location = glGetAttribLocation(program, "vPos");
-	const GLint vcol_location = glGetAttribLocation(program, "vCol");
-
-	GLuint vertex_array;
-	glGenVertexArrays(1, &vertex_array);
-	glBindVertexArray(vertex_array);
-	glEnableVertexAttribArray(vpos_location);
-	glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-		sizeof(Vertex), (void*)offsetof(Vertex, pos));
-	glEnableVertexAttribArray(vcol_location);
-	glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-		sizeof(Vertex), (void*)offsetof(Vertex, col));
-
-
-	while (!glfwWindowShouldClose(window))
+	while (true)
 	{
 
 		int width, height;
@@ -133,24 +104,27 @@ void MainApp() {
 
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
+		triangle.scale.x = 1+0.5*sin((float)glfwGetTime());
+		triangle.scale.y = 1 + 0.5 * cos((float)glfwGetTime());
+		triangle.pos.x = sin((float)glfwGetTime());
+		triangle.rotation = 0.1f*(float)glfwGetTime();
 
-		mat4x4 m, p, mvp;
-		mat4x4_identity(m);
-		//mat4x4_rotate_Z(m, m, (float)glfwGetTime());
-		mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-		mat4x4_mul(mvp, p, m);
+		triangle.Draw(ratio);
 
-		glUseProgram(program);
-		glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
-		glBindVertexArray(vertex_array);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
 
+		
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		if (glfwWindowShouldClose(window)) {
+			DLOG("[DEBUG] Exiting application...");
+			//should it end?
+			glfwDestroyWindow(window);
+
+			glfwTerminate();
+			exit(EXIT_SUCCESS);
+		}
 	}
 
-	glfwDestroyWindow(window);
-
-	glfwTerminate();
-	exit(EXIT_SUCCESS);
+	
 }
