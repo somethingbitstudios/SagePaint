@@ -1,5 +1,6 @@
 #include "CanvasModel.h"
-
+#define STB_IMAGE_IMPLEMENTATION 
+#include "stb_image.h"
 
 /* this shader set uses time and position in fragment, the position might not be optimal because 2x MVP * vec4 is not needed
 static const char* vertex_shader_text =
@@ -29,20 +30,24 @@ static const char* fragment_shader_text =
 static const char* vertex_shader_text =
 "#version 330\n"
 "uniform mat4 MVP;\n"
-
 "in vec3 vPos;\n"
+"in vec2 vTex;\n"
+"out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
 "    gl_Position = MVP * vec4(vPos, 1.0);\n"
+"    TexCoord=vTex;\n"
 "}\n";
 
 static const char* fragment_shader_text =
 "#version 330\n"
 //"uniform float time;\n"
 "out vec4 fragment;\n"
+"in vec2 TexCoord;\n"
+"uniform sampler2D tex;\n"
 "void main()\n"
 "{\n"
-"    fragment = vec4(1.0,1.0,1.0, 1.0);\n"
+"    fragment = texture(tex,TexCoord);\n"
 "}\n";
 
 static unsigned int instance_count = 0;
@@ -53,7 +58,8 @@ static GLuint vertex_buffer;
 static GLuint mvp_location;
 //static GLuint time_location;
 static GLuint index_buffer;
-
+static GLuint uv_buffer;
+static GLuint texture;
 CanvasModel::~CanvasModel() {
 	instance_count--;
 
@@ -62,6 +68,8 @@ CanvasModel::~CanvasModel() {
 		glDeleteProgram(program);
 		glDeleteBuffers(1, &vertex_buffer);
 		glDeleteBuffers(1, &index_buffer);
+		glDeleteBuffers(1, &uv_buffer);
+
 
 	}
 }
@@ -70,6 +78,7 @@ CanvasModel::CanvasModel() :Model() {
 	if (program == 0) {
 		glGenBuffers(1, &vertex_buffer);
 		glGenBuffers(1, &index_buffer);
+		glGenBuffers(1, &uv_buffer);
 
 		const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
@@ -91,33 +100,58 @@ CanvasModel::CanvasModel() :Model() {
 		//time_location = glGetUniformLocation(program, "time");
 
 		const GLint vpos_location = glGetAttribLocation(program, "vPos");
+		const GLint uvpos_location = glGetAttribLocation(program, "vTex");
 		//const GLint vcol_location = glGetAttribLocation(program, "vCol");
 
-		// ===== VAO SETUP (correct order) =====
 		glGenVertexArrays(1, &vertex_array);
 		glBindVertexArray(vertex_array);
 
-		// ---- bind VBO *after* binding VAO ----
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		glEnableVertexAttribArray(vpos_location);
+		glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
+			sizeof(GLfloat) * 3, (void*)0);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
 
-		// ---- bind EBO while VAO is bound ----
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rect_indices), rect_indices, GL_STATIC_DRAW);
 
-		// ---- setup vertex attributes ----
-		glEnableVertexAttribArray(vpos_location);
-		glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
-			sizeof(GLfloat)*3, (void*)0);
+		glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(rect_uv), rect_uv, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(uvpos_location);
+		glVertexAttribPointer(uvpos_location, 2, GL_FLOAT, GL_FALSE,
+			sizeof(GLfloat) * 2, (void*)0);
+
+
+
+
+
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+		int w, h, n;
+		unsigned char* data = stbi_load("C:/temp/test.png", &w, &h, &n, 4);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		stbi_image_free(data);
 
 		/*glEnableVertexAttribArray(vcol_location);
 		glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
 			sizeof(Vertex), (void*)offsetof(Vertex, col));
 			*/
-		// ===== DO NOT create another VAO here =====
 
 
-		
+
+
 	}
 
 }
@@ -132,12 +166,21 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 
 	mvp = p * m;
 	glUseProgram(program);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	//send uniform to shader
+	GLint texLoc = glGetUniformLocation(program, "tex");
+	glUniform1i(texLoc, 0);
+
+
 	//consider using 'Uniform buffer objects' if there are too many uniforms
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
 
 	//float time_ms = (float)(glfwGetTime());
 	//glUniform1f(time_location, time_ms);
-	
+
 	glBindVertexArray(vertex_array);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
