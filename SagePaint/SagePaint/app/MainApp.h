@@ -1,3 +1,4 @@
-#include "Debug.h"
+#pragma once
+#include "debug.h"
 
 void MainApp();

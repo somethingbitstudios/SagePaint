@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 
 #define GLFW_INCLUDE_NONE
-#include <GLFW\glfw3.h>;
+#include <GLFW\glfw3.h>
 
 #include "linmath.h"
 
@@ -12,44 +12,12 @@
 #include <stdio.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "./graphics/Common.h"
 
-#include "./ui/Canvas.h"
-#include "ui/Triangle.h"
+#include "graphics/TriObject.h"
+#include "graphics/CanvasObject.h"
 
 
-typedef struct Vertex
-{
-	vec2 pos;
-	vec3 col;
-} Vertex;
-
-static const Vertex vertices[3] =
-{
-	{ { -0.6f, -0.4f }, { 1.f, 0.f, 0.f } },
-	{ {  0.6f, -0.4f }, { 0.f, 1.f, 0.f } },
-	{ {   0.f,  0.6f }, { 0.f, 0.f, 1.f } }
-};
-
-static const char* vertex_shader_text =
-"#version 330\n"
-"uniform mat4 MVP;\n"
-"in vec3 vCol;\n"
-"in vec2 vPos;\n"
-"out vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
-
-static const char* fragment_shader_text =
-"#version 330\n"
-"in vec3 color;\n"
-"out vec4 fragment;\n"
-"void main()\n"
-"{\n"
-"    fragment = vec4(color, 1.0);\n"
-"}\n";
 
 static void error_callback(int error, const char* description)
 {
@@ -62,24 +30,27 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 void MainApp() {
-	DLOG("\n----------------------------------<[DEBUG_MODE]>----------------------------------\n");
-	DLOG("version: 0.03");
+	DLOG("\n----------------------------------<[DEBUG_MODE]>----------------------------------\n")
+	DLOG("version: 0.04")
 
 
 	
 
 	glfwSetErrorCallback(error_callback);
 
-	if (!glfwInit())
+	if (!glfwInit()) {
+		DLOG("GLFW failed to init!")
 		exit(EXIT_FAILURE);
-
+	}
+		
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Sage Paint v0.01", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint v0.01", NULL, NULL);
 	if (!window)
 	{
+		DLOG("Window failed to init!")
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -88,37 +59,45 @@ void MainApp() {
 
 	glfwMakeContextCurrent(window);
 	glewInit();
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);//when ==1, mouse movement caused small stutters
 
 	
 	
-	Triangle triangle = Triangle();
-	
+
+	GameObjectPtr go = std::make_shared<CanvasObject>();
 
 	while (true)
 	{
+		
 
+		//'update' like portion
+		//go->scale.x = 1+0.5*sin((float)glfwGetTime());
+		//go->scale.y = 1 + 0.5 * cos((float)glfwGetTime());
+		go->pos.x = sin((float)glfwGetTime());
+		go->rotation = 0.1f*(float)glfwGetTime();
+
+
+		//Basic gl things
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
-		const float ratio = width / (float)height;
-
+		Screen_width = width;
+		Screen_height = height;
+		Screen_ratio = width / (float)height;
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
-		triangle.scale.x = 1+0.5*sin((float)glfwGetTime());
-		triangle.scale.y = 1 + 0.5 * cos((float)glfwGetTime());
-		triangle.pos.x = sin((float)glfwGetTime());
-		triangle.rotation = 0.1f*(float)glfwGetTime();
 
-		triangle.Draw(ratio);
+		//render
+		go->Draw();
 
-
-		
-		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
 		if (glfwWindowShouldClose(window)) {
-			DLOG("[DEBUG] Exiting application...");
-			//should it end?
+			DLOG("Exiting application...")
+				//should it end(?) logic goes here
+				//glfwSetWindowShouldClose(window, GLFW_FALSE); //use when cancelling to save modified file being opened etc.
+
+			go.~shared_ptr();
 			glfwDestroyWindow(window);
 
 			glfwTerminate();
