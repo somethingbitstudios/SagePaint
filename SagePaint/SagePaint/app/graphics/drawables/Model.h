@@ -19,6 +19,7 @@ public:
 	Model();
 	~Model();
 	virtual void Draw(glm::mat4 m,glm::mat4 p);
+	virtual void Changed();
 };
 
 typedef std::shared_ptr<Model> ModelPtr;

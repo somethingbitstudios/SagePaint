@@ -19,6 +19,7 @@
 
 
 
+
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
@@ -61,11 +62,10 @@ void MainApp() {
 	glewInit();
 	glfwSwapInterval(0);//when ==1, mouse movement caused small stutters
 
-	
-	
-
-	GameObjectPtr go = std::make_shared<CanvasObject>();
-
+	//'start()'
+	CanvasObjectPtr go = std::make_shared<CanvasObject>();
+	std::string animation[] = { "C:/temp/test.png", "C:/temp/test1.png" };
+	int i = 0;
 	while (true)
 	{
 		
@@ -75,8 +75,12 @@ void MainApp() {
 		//go->scale.y = 1 + 0.5 * cos((float)glfwGetTime());
 		go->pos.x = sin((float)glfwGetTime());
 		go->rotation = 0.1f*(float)glfwGetTime();
-
-
+		
+		
+		/*i++;
+		i %= 2;
+		go->LoadImage(animation[i]);
+		*/
 		//Basic gl things
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);

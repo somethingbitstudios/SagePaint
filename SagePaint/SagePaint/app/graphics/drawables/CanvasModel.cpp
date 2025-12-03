@@ -1,6 +1,6 @@
 #include "CanvasModel.h"
-#define STB_IMAGE_IMPLEMENTATION 
-#include "stb_image.h"
+
+#include "../../file/FileManager.h"
 
 /* this shader set uses time and position in fragment, the position might not be optimal because 2x MVP * vec4 is not needed
 static const char* vertex_shader_text =
@@ -60,6 +60,35 @@ static GLuint mvp_location;
 static GLuint index_buffer;
 static GLuint uv_buffer;
 static GLuint texture;
+
+
+void CanvasModel::Changed() {
+	SetImage(image);
+}
+void CanvasModel::SetImage(ImagePtr i) {
+	int oldw=0,oldh=0;
+
+	if (image != NULL) {
+		int oldw = image->width;
+		int oldh = image->height;
+
+	}
+
+	image = i;
+	glBindTexture(GL_TEXTURE_2D, texture);
+	//this won't work when the image can be modified quickly
+	/*if (oldw == image->width && oldh && image->height) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+			image->width, image->height,
+			GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
+	}
+	else {*/
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
+	//}
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+
 CanvasModel::~CanvasModel() {
 	instance_count--;
 
@@ -69,7 +98,7 @@ CanvasModel::~CanvasModel() {
 		glDeleteBuffers(1, &vertex_buffer);
 		glDeleteBuffers(1, &index_buffer);
 		glDeleteBuffers(1, &uv_buffer);
-
+		glDeleteTextures(1, &texture);
 
 	}
 }
@@ -124,25 +153,19 @@ CanvasModel::CanvasModel() :Model() {
 
 
 
-
-
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
-		int w, h, n;
-		unsigned char* data = stbi_load("C:/temp/test.png", &w, &h, &n, 4);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(data);
+
+		
 
 		/*glEnableVertexAttribArray(vcol_location);
 		glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,

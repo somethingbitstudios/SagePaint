@@ -9,3 +9,6 @@ Model::Model() {
 void Model::Draw(glm::mat4 m, glm::mat4 p) {
 	//DLOG("MODEL draw")
 }
+void Model::Changed() {
+	//DLOG("MODEL draw")
+}
