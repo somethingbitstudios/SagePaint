@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "../../file/Image.h"
 
 Model::~Model() {
 	DLOG("MODEL del")
@@ -10,5 +11,8 @@ void Model::Draw(glm::mat4 m, glm::mat4 p) {
 	//DLOG("MODEL draw")
 }
 void Model::Changed() {
-	//DLOG("MODEL draw")
+	//DLOG("MODEL changed")
+}
+void Model::SetImage(ImagePtr i) {
+	//DLOG("MODEL setimage")
 }

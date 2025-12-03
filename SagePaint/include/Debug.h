@@ -30,12 +30,17 @@
 //app notes:
 
 /*
-the current image class can change, which is nice, but it means
-the data (like width etc. can't be relied on to compare old with new)
+the polymorphism approach so far:
+with Model:
+a) have virtual funcs and override them
++  ~performance loss
+-  means Model needs to contain all functions of every model
 
-->
+b) fix through casting - static_cast<TargetClass*>(SourceClass*)->Thing()
++ no clutter in Model and other parent classes ()
+- slight performance loss
+*/
 
-make it into a container class, than is immutable in most cases
-just let FileManager::LoadImage(path) return ImagePtr type already in sharedptr form
-or deal with complexities... no, just handle loading from outside for now
+/*
+
 */

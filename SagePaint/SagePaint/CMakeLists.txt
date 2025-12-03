@@ -5,7 +5,7 @@
 # Add source to this project's executable.
 
 #add this               WIN32     to avoid console window
-add_executable (SagePaint "SagePaint.cpp" "SagePaint.h" "../include/debug.h" "app/MainApp.h" "app/MainApp.cpp"     "app/graphics/Common.h"     "app/graphics/GameObject.h" "app/graphics/drawables/Model.h" "app/graphics/drawables/Model.cpp" "app/graphics/GameObject.cpp" "app/graphics/Common.cpp" "app/graphics/TriObject.cpp" "app/graphics/TriObject.h" "app/graphics/drawables/TriModel.cpp" "app/graphics/drawables/TriModel.h" "app/graphics/drawables/CanvasModel.h" "app/graphics/drawables/CanvasModel.cpp" "app/graphics/CanvasObject.h" "app/graphics/CanvasObject.cpp" "app/file/FileManager.cpp" "app/file/FileManager.h"  "app/file/Image.cpp" "app/file/Image.h") #console
+add_executable (SagePaint "SagePaint.cpp" "SagePaint.h" "../include/debug.h" "app/MainApp.h" "app/MainApp.cpp"     "app/graphics/Common.h"     "app/graphics/GameObject.h" "app/graphics/drawables/Model.h" "app/graphics/drawables/Model.cpp" "app/graphics/GameObject.cpp" "app/graphics/Common.cpp" "app/graphics/TriObject.cpp" "app/graphics/TriObject.h" "app/graphics/drawables/TriModel.cpp" "app/graphics/drawables/TriModel.h" "app/graphics/drawables/CanvasModel.h" "app/graphics/drawables/CanvasModel.cpp" "app/graphics/CanvasObject.h" "app/graphics/CanvasObject.cpp"    "app/file/Image.cpp" "app/file/Image.h") #console
  
 
 target_include_directories(${PROJECT_NAME} PRIVATE

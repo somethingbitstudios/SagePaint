@@ -1,18 +1,23 @@
 #include "CanvasObject.h"
-
+#include "shortcuts.h"
 
 CanvasObject::CanvasObject() :GameObject() {
-	//initialize texture
-	
-	image = std::make_shared<Image>("C:/temp/test.png");
-	CanvasModelPtr model_tmp = std::make_shared<CanvasModel>();
-	model_tmp->SetImage(image);
-	model = model_tmp;
+	//initialize canvas
+	image = std::make_shared<Image>(640,360);
+	model = std::make_shared<CanvasModel>();
+	model->SetImage(image);
+	//scast(CanvasModel, model)->SetImage(image); alternative
 }
 void CanvasObject::LoadImage(std::string path) {
-	image->LoadImage(path);
-	model->Changed();//alert canvas that image changed
+	image = std::make_shared<Image>(path);
+	model->SetImage(image);
+	//scast(CanvasModel, model)->SetImage(image);//alert canvas that image changed
 }
+void CanvasObject::LoadImage(ImagePtr i) {
+	model->SetImage(i);
+	//scast(CanvasModel, model)->SetImage(i);//alert canvas that image changed
+}
+
 CanvasObject::~CanvasObject() {
 	DLOG("Canvas start deletion")
 	//initialize texture

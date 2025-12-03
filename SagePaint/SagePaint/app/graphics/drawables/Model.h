@@ -13,12 +13,14 @@
 #include <stdio.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "../Common.h"
+#include "../../file/Image.h"
 //a test class for separating rendering into an object
 class Model {
 public:
 	Model();
 	~Model();
 	virtual void Draw(glm::mat4 m,glm::mat4 p);
+	virtual void SetImage(ImagePtr i);
 	virtual void Changed();
 };
 

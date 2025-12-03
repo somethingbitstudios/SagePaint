@@ -18,7 +18,12 @@ void Image::Init() {
 Image::Image() {
 	Image::Init();
 	}
-
+Image::Image(int w, int h) {
+	width = w;
+	height = h;
+	int n = 4;//number of channels
+	texture = (unsigned char*)calloc(w*h*n,sizeof(unsigned char)); //for empty canvas
+}
 Image::Image(std::string path) {
 	Image::Init();
 	LoadImage(path);

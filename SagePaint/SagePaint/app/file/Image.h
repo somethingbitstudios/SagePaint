@@ -5,13 +5,18 @@ class Image {
 public:
 	Image();
 	Image(std::string path);
+	Image(int w,int h);
+
 	~Image();
 
-	void LoadImage(std::string path);
 	void Init();
+
 	unsigned char* texture;
 	int width;
 	int height;
+private:
+	void LoadImage(std::string path);
+
 };
 
 typedef std::shared_ptr<Image> ImagePtr;

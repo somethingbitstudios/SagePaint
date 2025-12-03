@@ -13,7 +13,6 @@ GameObject::GameObject() {
 	pos = { 0,0,0 };
 	scale = { 1,1,1 };
 	rotation = 0;
-	//model = std::make_shared<Model>();
 }
 void GameObject::Draw() {
 	glm::mat4 m, p, mvp;

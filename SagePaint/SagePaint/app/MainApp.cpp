@@ -31,8 +31,9 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 void MainApp() {
-	DLOG("\n----------------------------------<[DEBUG_MODE]>----------------------------------\n")
-	DLOG("version: 0.04")
+	IDLOG("\n----------------------------------<[DEBUG_MODE]>----------------------------------\n")
+	DLOG("SHOWING BOTH 'important' IDLOG and 'regular' DLOG\n")
+	IDLOG("version: 0.05")
 
 
 	
@@ -48,7 +49,7 @@ void MainApp() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint v0.01", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint Alpha", NULL, NULL);
 	if (!window)
 	{
 		DLOG("Window failed to init!")
@@ -64,23 +65,36 @@ void MainApp() {
 
 	//'start()'
 	CanvasObjectPtr go = std::make_shared<CanvasObject>();
-	std::string animation[] = { "C:/temp/test.png", "C:/temp/test1.png" };
+	ImagePtr images[] = {
+		std::make_shared<Image>("C:\\temp\\test.png"),
+		std::make_shared<Image>("C:\\temp\\test1.png"),
+		std::make_shared<Image>("C:\\temp\\test2.png"),
+		std::make_shared<Image>("C:\\temp\\test3.png"),
+		std::make_shared<Image>("C:\\temp\\test4.png")
+	};
 	int i = 0;
-	while (true)
+	bool runApp = true;
+	while (runApp)
 	{
-		
+		glfwPollEvents();//input
 
 		//'update' like portion
+		
+
+
 		//go->scale.x = 1+0.5*sin((float)glfwGetTime());
 		//go->scale.y = 1 + 0.5 * cos((float)glfwGetTime());
 		go->pos.x = sin((float)glfwGetTime());
 		go->rotation = 0.1f*(float)glfwGetTime();
 		
 		
-		/*i++;
-		i %= 2;
-		go->LoadImage(animation[i]);
-		*/
+		i++;
+		i %= 5;
+		go->LoadImage(images[i]);
+		
+
+
+
 		//Basic gl things
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
@@ -94,20 +108,25 @@ void MainApp() {
 		go->Draw();
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();
+		
 
 		if (glfwWindowShouldClose(window)) {
 			DLOG("Exiting application...")
+
 				//should it end(?) logic goes here
 				//glfwSetWindowShouldClose(window, GLFW_FALSE); //use when cancelling to save modified file being opened etc.
 
-			go.~shared_ptr();
-			glfwDestroyWindow(window);
-
-			glfwTerminate();
-			exit(EXIT_SUCCESS);
-		}
+				//it should:
+			runApp = false;
+			}
 	}
+	go.~shared_ptr();
+
+	glfwDestroyWindow(window);
+
+	glfwTerminate();
+	//exit(EXIT_SUCCESS); //prevents destructors of classes in mainApp from running 
+
 
 	
 }

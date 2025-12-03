@@ -1,6 +1,5 @@
 #include "CanvasModel.h"
 
-#include "../../file/FileManager.h"
 
 /* this shader set uses time and position in fragment, the position might not be optimal because 2x MVP * vec4 is not needed
 static const char* vertex_shader_text =
@@ -76,16 +75,15 @@ void CanvasModel::SetImage(ImagePtr i) {
 
 	image = i;
 	glBindTexture(GL_TEXTURE_2D, texture);
-	//this won't work when the image can be modified quickly
-	/*if (oldw == image->width && oldh && image->height) {
+	if (oldw == image->width && oldh && image->height) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
 			image->width, image->height,
 			GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
 	}
-	else {*/
+	else {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
-	//}
+	}
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
