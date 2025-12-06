@@ -10,6 +10,15 @@
 //'toggle' to turn on (when defined) less important debug
 #define DEBUG_ALL
 
+#define WINDOWS_BUILD
+
+//#define LINUX_BUILD
+
+#ifdef WINDOWS
+#define WIN_ONLY(x) x
+#else
+#define WIN_ONLY(x)
+#endif
 //DLOG(x) is used for more granular logs
 //IDLOG(x) is used for important events
 #include <iostream>
@@ -30,6 +39,26 @@
 //app notes:
 
 /*
+* 
+* writing part:
+* there is currently some delay between the mouse and program
+* https://wikis.khronos.org/opengl/Sync_Object#Synchronization
+* might fix it? it seems to be a timing issue
+* NO
+* maybe using vulkan could be worth it...
+* 
+* trying to get mouse from coordinates directly
+* POINT p;
+		GetCursorPos(&p);                    // screen coords
+		ScreenToClient(glfwGetWin32Window(window), &p);  // window-local coords
+
+		int xpos = p.x;
+		int ypos = p.y;
+still lagging behind a bit, maybe the mouse is not the issue
+* 
+* 
+* 
+* 
 the polymorphism approach so far:
 with Model:
 a) have virtual funcs and override them

@@ -6,9 +6,10 @@ class CanvasObject : public GameObject {
 public:
 	CanvasObject();
 	~CanvasObject();
-	void LoadImage(std::string path);
-	void LoadImage(ImagePtr i);
+	void LoadImageSync(std::string path);
+	void LoadImageSync(ImagePtr i);
 	ImagePtr image;
+	void Draw() override;
 
 };
 typedef std::shared_ptr<CanvasObject> CanvasObjectPtr;

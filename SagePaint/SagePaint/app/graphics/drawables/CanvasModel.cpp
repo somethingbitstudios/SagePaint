@@ -64,6 +64,8 @@ static GLuint texture;
 void CanvasModel::Changed() {
 	SetImage(image);
 }
+
+
 void CanvasModel::SetImage(ImagePtr i) {
 	int oldw=0,oldh=0;
 

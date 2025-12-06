@@ -23,7 +23,7 @@ void GameObject::Draw() {
 
 	m = glm::rotate(m, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	m = glm::scale(m, scale);
-
+	//game-like ortho where making window smaller scales objects to fit
 	p = glm::ortho(-Screen_ratio, Screen_ratio, -1.0f, 1.0f, 1.0f, -1.0f);
 
 	model->Draw(m, p);

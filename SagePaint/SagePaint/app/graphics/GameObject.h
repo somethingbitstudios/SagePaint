@@ -24,6 +24,6 @@ public:
 	GameObject();
 	~GameObject();
 
-	void Draw();
+	virtual void Draw();
 };
 typedef std::shared_ptr<GameObject> GameObjectPtr;
