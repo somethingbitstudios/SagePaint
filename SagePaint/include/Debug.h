@@ -14,11 +14,7 @@
 
 //#define LINUX_BUILD
 
-#ifdef WINDOWS
-#define WIN_ONLY(x) x
-#else
-#define WIN_ONLY(x)
-#endif
+
 //DLOG(x) is used for more granular logs
 //IDLOG(x) is used for important events
 #include <iostream>
@@ -55,6 +51,7 @@
 		int xpos = p.x;
 		int ypos = p.y;
 still lagging behind a bit, maybe the mouse is not the issue
+tried swap chain fencing, did not work
 * 
 * 
 * 

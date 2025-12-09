@@ -71,7 +71,7 @@ void MainApp() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint Alpha", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint Alpha",NULL, NULL);
 	if (!window)
 	{
 		DLOG("Window failed to init!")
@@ -133,17 +133,7 @@ void MainApp() {
 		
 		double xpos;
 		double ypos;
-		//glfwGetCursorPos(window, &xpos, &ypos);
-		#ifdef WINDOWS_BUILD
-		POINT p;
-		GetCursorPos(&p);                    // screen coords
-		ScreenToClient(glfwGetWin32Window(window), &p);  // window-local coords
-
-		xpos = p.x;
-		ypos = p.y;
-		#else
 		glfwGetCursorPos(window, &xpos, &ypos);
-		#endif
 
 		//DLOG(xpos << "x")
 		//DLOG(ypos << "y")
@@ -172,7 +162,6 @@ void MainApp() {
 
 		
 		glfwSwapBuffers(window);
-	
 
 		if (glfwWindowShouldClose(window)) {
 			DLOG("Exiting application...")
