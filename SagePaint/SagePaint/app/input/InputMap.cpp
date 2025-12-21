@@ -7,7 +7,7 @@ InputMap::InputMap(int defaultType) {
 	Default(defaultType);
 }
 void InputMap::Init() {
-	//adds empty values for all keys, at least ~360 for some reason?
+	//adds empty values for all keys, at least 32-348 for keys, and add some for mouse at 1,2 maybe
 }
 bool InputMap::Action(int key, int action, int mods) {
 	return true;//true -> ok'd, false -> blocked
