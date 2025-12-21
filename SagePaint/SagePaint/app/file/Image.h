@@ -1,6 +1,6 @@
 #pragma once
 #include "debug.h"
-
+#include "FileManager.h"
 class Image {
 public:
 	Image();
@@ -14,6 +14,7 @@ public:
 	unsigned char* texture;
 	int width;
 	int height;
+	int id;//WARN: debug
 private:
 	void LoadImage(std::string path);
 

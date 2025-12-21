@@ -10,6 +10,6 @@ public:
 	void LoadImageSync(ImagePtr i);
 	ImagePtr image;
 	void Draw() override;
-
+	int GetType() const override { return 1; }
 };
 typedef std::shared_ptr<CanvasObject> CanvasObjectPtr;

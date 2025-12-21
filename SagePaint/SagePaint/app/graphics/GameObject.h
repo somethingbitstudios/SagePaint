@@ -22,8 +22,9 @@ public:
 	ModelPtr model;
 
 	GameObject();
-	~GameObject();
+	virtual ~GameObject();
 
 	virtual void Draw();
+	virtual int GetType() const { return 0; }
 };
 typedef std::shared_ptr<GameObject> GameObjectPtr;

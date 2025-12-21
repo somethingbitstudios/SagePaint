@@ -17,6 +17,7 @@
 #include "graphics/TriObject.h"
 #include "graphics/CanvasObject.h"
 
+#include "input/InputManager.h"
 
 #ifdef WINDOWS_BUILD
 #include <Windows.h>
@@ -54,16 +55,15 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 
 void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
-	IDLOG("IMPORTANT IDLOG MESSAGES ENABLED")
-	DLOG("GRANULAR DLOG MESSAGES ENABLED")
-	IDLOG("version: 0.06\n")
+		IDLOG("IMPORTANT IDLOG MESSAGES ENABLED")
+		DLOG("GRANULAR DLOG MESSAGES ENABLED")
+		IDLOG("version: 0.06\n")
 
 
-	
 
 	glfwSetErrorCallback(error_callback);
 	if (!glfwInit()) {
-		DLOG("GLFW failed to init!")
+		IDLOG("GLFW failed to init!")
 		exit(EXIT_FAILURE);
 	}
 		
@@ -74,7 +74,7 @@ void MainApp() {
 	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint Alpha",NULL, NULL);
 	if (!window)
 	{
-		DLOG("Window failed to init!")
+		IDLOG("Window failed to init!")
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -164,7 +164,7 @@ void MainApp() {
 		glfwSwapBuffers(window);
 
 		if (glfwWindowShouldClose(window)) {
-			DLOG("Exiting application...")
+			IDLOG("Exiting application...")
 
 				//should it end(?) logic goes here
 				//glfwSetWindowShouldClose(window, GLFW_FALSE); //use when cancelling to save modified file being opened etc.
@@ -173,8 +173,8 @@ void MainApp() {
 			runApp = false;
 			}
 	}
-	go.~shared_ptr();
-
+	//destruction
+	
 	glfwDestroyWindow(window);
 
 	glfwTerminate();

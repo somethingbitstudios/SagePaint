@@ -21,7 +21,7 @@ public:
 	void Draw(glm::mat4 m, glm::mat4 p) override;
 	CanvasModel();
 	~CanvasModel();
-	void SetImage(ImagePtr i);
+	void SetImage(ImagePtr i)override;
 	void Changed()override;
 	ImagePtr image;
 };

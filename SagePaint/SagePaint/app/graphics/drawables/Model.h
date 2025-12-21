@@ -18,7 +18,7 @@
 class Model {
 public:
 	Model();
-	~Model();
+	virtual ~Model();
 	virtual void Draw(glm::mat4 m,glm::mat4 p);
 	virtual void SetImage(ImagePtr i);
 	virtual void Changed();

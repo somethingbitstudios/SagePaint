@@ -25,7 +25,7 @@
 #else
 #define DLOG(x)
 #endif
-#define IDLOG(x) std::cerr << x << std::endl;
+#define IDLOG(x) std::cout << x << std::endl;
 #else
 #define DLOG(x)
 #define IDLOG(x)
@@ -52,6 +52,11 @@
 		int ypos = p.y;
 still lagging behind a bit, maybe the mouse is not the issue
 tried swap chain fencing, did not work
+OK, so I've just checked, and MSPaint, GIMP AND Krita all have this same delay, so it might be unavoidable, but I'll still try to research
+...
+not sure if Vulkan would be better, so staying with OpenGL for now
+researched Vulkan, and it seems very complex, and only worth it if used completely correctly
+
 * 
 * 
 * 

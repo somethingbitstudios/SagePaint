@@ -68,7 +68,7 @@ void CanvasModel::Changed() {
 
 void CanvasModel::SetImage(ImagePtr i) {
 	int oldw=0,oldh=0;
-
+	
 	if (image != NULL) {
 		int oldw = image->width;
 		int oldh = image->height;
@@ -103,8 +103,7 @@ CanvasModel::~CanvasModel() {
 	}
 }
 CanvasModel::CanvasModel() :Model() {
-	instance_count++;
-	if (program == 0) {
+	if (instance_count++==0) {
 		glGenBuffers(1, &vertex_buffer);
 		glGenBuffers(1, &index_buffer);
 		glGenBuffers(1, &uv_buffer);
@@ -198,7 +197,7 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	glUniform1i(texLoc, 0);
 
 
-	//consider using 'Uniform buffer objects' if there are too many uniforms
+	//consider using 'Uniform buffer objects'(?idk, meh) if there are too many uniforms
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
 
 	//float time_ms = (float)(glfwGetTime());
