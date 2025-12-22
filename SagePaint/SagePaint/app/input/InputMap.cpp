@@ -149,12 +149,13 @@ void InputMap::Default(int defaultType) {
 
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = true; //not additive, override
 		
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Click");
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Draw");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
 
+		/*
 		InitKeyFunction(&a, 0, KEY_CONTEXT_UI, "ClickUI");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
-
+		*/
 		
 
 		

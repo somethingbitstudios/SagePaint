@@ -33,3 +33,6 @@ void InputManager :: ProcessHeld() {
 void InputManager::SetContext(Key_Context_Enum keyContext) {
 	InputMap::SetContext(keyContext);
 }
+void InputManager::UpdateCursorPos(GLFWwindow* window) {
+	glfwGetCursorPos(window, &cursorX, &cursorY);
+}

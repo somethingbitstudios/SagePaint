@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 class FileManager { //might not be a good idea for it to be a class, will make it a namespace in that case
 public:

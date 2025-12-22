@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <functional>
 #include "InputMap.h"
+#include <GLFW/glfw3.h>
 
 //ok so it works like:
 /*
@@ -20,10 +21,15 @@ public:
 	InputManager();
 	~InputManager();
 	void LoadInputMap(std::string path); //json?
+	void UpdateCursorPos(GLFWwindow* window);
+
 	void Input(int key, int action, int mods);
 	void ProcessHeld();
 	void SetContext(Key_Context_Enum keyContext);
+	double GetCursorX() { return cursorX; }
+	double GetCursorY() { return cursorY; }
 private:
+	double cursorX, cursorY;
 	std::vector<int> keyHeld;//has data for held keys
 	InputMap keyMap; //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?

@@ -14,7 +14,7 @@
 
 #include "./graphics/Common.h"
 
-#include "graphics/TriObject.h"
+//#include "graphics/TriObject.h"
 #include "graphics/CanvasObject.h"
 
 #include "input/InputManager.h"
@@ -24,17 +24,20 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #endif
+#include "CanvasManager.h"
 
-InputManager inputManager;
+InputManagerPtr inputManager = std::make_shared<InputManager>();
+CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
+CanvasObjectPtr go;
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
 }
-CanvasObjectPtr go;
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-		inputManager.Input(key, action, mods);
+		inputManager->Input(key, action, mods);
 	//if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 	//	glfwSetWindowShouldClose(window, GLFW_TRUE);
 	
@@ -43,7 +46,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	//DLOG("[INPUT] Mouse: " << button << " Action: " << action)
-		inputManager.Input(button, action, mods);
+		inputManager->Input(button, action, mods);
 	//if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 	//	DLOG("what")
 	//}
@@ -96,7 +99,11 @@ void MainApp() {
 
 
 	//'start()'
-	go = std::make_shared<CanvasObject>();
+	
+
+	CanvasManager::inputManager = inputManager;
+	canvasManager->obj= std::make_shared<CanvasObject>();
+	go = canvasManager->obj;
 	
 	ImagePtr images[] = {
 		std::make_shared<Image>("C:\\temp\\test.png"),
@@ -105,6 +112,9 @@ void MainApp() {
 		std::make_shared<Image>("C:\\temp\\test3.png"),
 		std::make_shared<Image>("C:\\temp\\test4.png")
 	};
+	go->LoadImageSync(images[0]);
+	go->scale.x = (float)images[0]->width;
+	go->scale.y = (float)images[0]->height;
 	int i = 0;
 	float timestamp = 0;
 	static GLsync gpuFence = nullptr;
@@ -124,7 +134,10 @@ void MainApp() {
 
 
 		glfwPollEvents();//input
-		inputManager.ProcessHeld();
+
+		inputManager->UpdateCursorPos(window);
+
+		inputManager->ProcessHeld();
 		//'update' like portion
 		
 
@@ -136,13 +149,22 @@ void MainApp() {
 		
 		double t0 = glfwGetTime();
 
-		
+		/*
+		double xpos = inputManager->GetCursorX();
+		double ypos = inputManager->GetCursorY();
+
+
+		*/
+
+
+		/*
 		double xpos;
 		double ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-
+		*/
 		//DLOG(xpos << "x")
 		//DLOG(ypos << "y")
+		/*
 		go->pos.x = ((float)xpos)-Screen_width/2;
 		go->pos.y = -((float)ypos)+Screen_height/2;
 		if ((float)glfwGetTime() - timestamp > 5.0f) {
@@ -154,7 +176,18 @@ void MainApp() {
 			go->scale.y = (float)images[i]->height;
 
 		}
-		
+		*/
+		/* changing pixels
+		int gg = (float)glfwGetTime() * 10;
+
+		for (int o = 64000; o < images[0]->width * 2000; o++) {
+			images[0]->texture[o] = (char)((gg + o * 10) % 256);
+		}
+
+		go->LoadImageSync(images[0]);
+		*/
+
+
 		go->rotation = (float)glfwGetTime()/10.0f;
 
 		
