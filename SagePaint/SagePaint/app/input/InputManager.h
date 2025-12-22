@@ -21,6 +21,10 @@ public:
 	~InputManager();
 	void LoadInputMap(std::string path); //json?
 	void Input(int key, int action, int mods);
+	void ProcessHeld();
+	void SetContext(Key_Context_Enum keyContext);
+private:
+	std::vector<int> keyHeld;//has data for held keys
 	InputMap keyMap = InputMap(0); //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?
 };

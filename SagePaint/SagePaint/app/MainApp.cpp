@@ -25,6 +25,7 @@
 #include <GLFW/glfw3native.h>
 #endif
 
+InputManager inputManager;
 
 static void error_callback(int error, const char* description)
 {
@@ -33,7 +34,7 @@ static void error_callback(int error, const char* description)
 CanvasObjectPtr go;
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	DLOG("[INPUT] Key: " << key << " Action: " << action)
+		inputManager.Input(key, action, mods);
 	//if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 	//	glfwSetWindowShouldClose(window, GLFW_TRUE);
 	
@@ -41,7 +42,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	DLOG("[INPUT] Mouse: " << button << " Action: " << action)
+	//DLOG("[INPUT] Mouse: " << button << " Action: " << action)
+		inputManager.Input(button, action, mods);
 	//if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 	//	DLOG("what")
 	//}
@@ -89,7 +91,13 @@ void MainApp() {
 	glewInit();
 	glfwSwapInterval(0);//when ==1, mouse movement caused small stutters
 
+
+
+
+
 	//'start()'
+	
+	
 	go = std::make_shared<CanvasObject>();
 	
 	ImagePtr images[] = {
@@ -118,7 +126,7 @@ void MainApp() {
 
 
 		glfwPollEvents();//input
-
+		inputManager.ProcessHeld();
 		//'update' like portion
 		
 
