@@ -73,7 +73,7 @@ void MainApp() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(Screen_width, Screen_height, "Sage Paint Alpha",NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow((int)Screen_width, (int)Screen_height, "Sage Paint Alpha",NULL, NULL);
 	if (!window)
 	{
 		IDLOG("Window failed to init!")
@@ -96,8 +96,6 @@ void MainApp() {
 
 
 	//'start()'
-	
-	
 	go = std::make_shared<CanvasObject>();
 	
 	ImagePtr images[] = {
@@ -118,8 +116,8 @@ void MainApp() {
 
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
-		Screen_width = width;
-		Screen_height = height;
+		Screen_width = (float)width;
+		Screen_height = (float)height;
 		Screen_ratio = width / (float)height;
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -145,15 +143,15 @@ void MainApp() {
 
 		//DLOG(xpos << "x")
 		//DLOG(ypos << "y")
-		go->pos.x = xpos-Screen_width/2;
-		go->pos.y = -ypos+Screen_height/2;
+		go->pos.x = ((float)xpos)-Screen_width/2;
+		go->pos.y = -((float)ypos)+Screen_height/2;
 		if ((float)glfwGetTime() - timestamp > 5.0f) {
 			timestamp = (float)glfwGetTime();
 			i++;
 			i %= 5;
 			go->LoadImageSync(images[i]);
-			go->scale.x = images[i]->width;
-			go->scale.y = images[i]->height;
+			go->scale.x = (float)images[i]->width;
+			go->scale.y = (float)images[i]->height;
 
 		}
 		

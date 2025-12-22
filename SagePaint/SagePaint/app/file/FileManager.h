@@ -5,4 +5,5 @@ public:
 	~FileManager();
 	static unsigned char * LoadImage(std::string filepath,int *width,int * height);
 	static unsigned char * LoadImagePlus(std::string filepath,int *width,int * height, int * numOfChannels,int requestedChannelNum);
+	static void Debug();
 };

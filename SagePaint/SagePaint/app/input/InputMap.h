@@ -12,7 +12,10 @@ enum Key_Context_Enum {
 
 
 struct KeyFunction {
-	std::function<void()> func; //might not need the params
+
+	//i need to add some kind of structure to get these functions from using strings,ints or some other type I can put into a json
+	// maybe a simple <
+	void (*func)();
 	Key_Context_Enum context;//maybe not the best? meh ( using a longs individual bits would allow for 64 contexts at once )
 	int priority;//might not use
 };
@@ -33,6 +36,9 @@ public:
 	InputMap(int defaultType);//this one calls default
 
 	void Init(); //fills the map with keyactions for each key (with an empty vector 'funcs')
+	
+	void InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum context, int functionNumber);
+	void InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum context, std::string functionName);
 
 	//research what the best way to do default is, when it needs to be part of the program, not some default.kmap file
 	void Default(int defaultType /*my, krita-like, no shortcut version(needs to be 0) etc...*/);//calls init() if map is empty, then fills the keymap with default values

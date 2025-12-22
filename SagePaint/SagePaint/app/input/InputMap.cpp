@@ -1,5 +1,9 @@
 #include "InputMap.h"
 #include <GLFW/glfw3.h>
+#include "InputFunctions.h"
+
+
+
 Key_Context_Enum kc;//WARN:change to an actually good location
 void InputMap::SetContext(Key_Context_Enum keyContext) {
 	kc = keyContext;
@@ -7,13 +11,16 @@ void InputMap::SetContext(Key_Context_Enum keyContext) {
 
 
 InputMap::InputMap() {
-
 	//no init is supposed to be here, to avoid unnecessary calls, because a later call to Init, Default or manually adding is expected
 }
+
 InputMap::InputMap(int defaultType) {
 	Default(defaultType);
 }
+
 void InputMap::Init() {
+	//inputFunctions[0] = { Click,   "Click",   "does click",        1 };
+	//inputFunctions[1] = { ClickUI, "ClickUI", "does click in UI",  2 };
 
 	//adds empty values for all keys, at least 32-348 for keys, and add some for mouse at 1,2 maybe
 	for (int i = 32; i < 349;i++) {
@@ -25,7 +32,7 @@ void InputMap::Init() {
 	keyMap[2] = KeyAction{};//mouse right
 }
 bool InputMap::Action(int key, int action, int mods) {
-	DLOG("[INPUT] Key: " << key << " Action: " << action)
+	//DLOG("[INPUT] Key: " << key << " Action: " << action)
 		if (action == 1) {//pressed
 			if (keyMap[key].mode) { //execute all funcs that are in context
 				int index = -1;
@@ -107,74 +114,49 @@ bool InputMap::Action(int key, int action, int mods) {
 	
 	return true;//true -> ok'd, false -> blocked
 }
+//will be better for the default config because it's faster
+void InputMap::InitKeyFunction(KeyFunction *kf,int priority,Key_Context_Enum context,int functionNumber) {
+	kf->priority = priority;
+	kf->context = context;
 
+	if (functionNumber >= 0 && functionNumber < inputFunctions.size()) {
+		kf->func = inputFunctions[functionNumber].func;
+	}
+}
+void InputMap::InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum context, std::string functionName) {
 
+	
 
+	kf->priority = priority;
+	kf->context = context;
+	int size = inputFunctions.size();
+	for (int i = 0; i < size; i++) {
+		if (inputFunctions[i].name == functionName) {
+			kf->func = inputFunctions[i].func;
+		}
+	}
+}
 void InputMap::Default(int defaultType) {
 	if (keyMap.size() == 0) {
 		Init();
 	}
 
 	
-
+	KeyFunction a;
 	//is this the best way?
 	switch (defaultType) {
 	default:
 
-		keyMap[0].mode = true; //not additive
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = true; //not additive, override
 		
-		KeyFunction a;
-		a.priority = 0;
-		a.context = KEY_CONTEXT_DEFAULT;
-		a.func = []() { // consider modifying to be able to directly call a function from elsewhere 
-			DLOG("   Pressed mouse button left")
-			};
-		keyMap[0].funcs.emplace_back(a);
-		
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Click");
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
 
+		InitKeyFunction(&a, 0, KEY_CONTEXT_UI, "ClickUI");
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
 
-		a.priority = 0;
-		a.context = KEY_CONTEXT_UI;
-		a.func = []() { // consider modifying to be able to directly call a function from elsewhere 
-			DLOG("   Pressed mouse button left UI override")
-			};
-		keyMap[0].funcs.emplace_back(a);
 		
 
-		a.priority = 0;
-		a.context = KEY_CONTEXT_DEFAULT;
-		a.func = []() { // consider modifying to be able to directly call a function from elsewhere 
-			DLOG("   Released mouse button left")
-			};
-		keyMap[0].funcsRelease.emplace_back(a);
-
-
-
-		a.priority = 0;
-		a.context = KEY_CONTEXT_DEFAULT;
-		a.func = []() { // consider modifying to be able to directly call a function from elsewhere 
-			DLOG("   Holding mouse button left                                    x")
-			};
-		keyMap[0].funcsHold.emplace_back(a);
-
-		a.priority = 0;
-		a.context = KEY_CONTEXT_DEFAULT;
-		a.func = []() { // consider modifying to be able to directly call a function from elsewhere 
-			DLOG("   Holding A                                                 y  y")
-			};
-		keyMap[GLFW_KEY_A].funcsHold.emplace_back(a);
-
-
-
-
-		keyMap[1].mode = true;
-		a.priority = 0;
-		a.context = KEY_CONTEXT_DEFAULT;
-		a.func = []() { // consider modifying to be able to directly call a function from elsewhere 
-			DLOG("   Pressed mouse button right")
-			};
-		keyMap[1].funcs.emplace_back(a);
-		
 		
 		break;
 	}

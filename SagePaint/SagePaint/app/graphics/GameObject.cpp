@@ -15,7 +15,7 @@ GameObject::GameObject() {
 	rotation = 0;
 }
 void GameObject::Draw() {
-	glm::mat4 m, p, mvp;
+	glm::mat4 m, p;
 	m = glm::mat4(1.0f);
 
 	m = glm::translate(m, pos);

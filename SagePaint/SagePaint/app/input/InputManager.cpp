@@ -1,7 +1,10 @@
 #include "InputManager.h"
-
+#include "InputFunctions.h"
 InputManager::InputManager() {
 	SetContext(KEY_CONTEXT_UI);//WARN: set to ui instead of default for testing only
+	InitInputFunctions();
+
+	keyMap.Default(0);
 }
 InputManager::~InputManager() {
 

@@ -1,5 +1,6 @@
 #include "FileManager.h"
 #include <stb_image.h>
+#include <debug.h>
 
 FileManager::FileManager() {
 
@@ -14,4 +15,7 @@ unsigned char * FileManager::LoadImage(std::string filepath, int* width, int* he
 }
 unsigned char* FileManager::LoadImagePlus(std::string filepath, int* width, int* height, int* numOfChannels, int requestedChannelNum) {
 	return stbi_load(filepath.c_str(), width, height, numOfChannels, requestedChannelNum);
+}
+void FileManager::Debug() {
+	DLOG("it works")
 }

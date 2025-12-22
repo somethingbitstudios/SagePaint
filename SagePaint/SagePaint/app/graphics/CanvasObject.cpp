@@ -26,7 +26,7 @@ CanvasObject::~CanvasObject() {
 
 
 void CanvasObject::Draw() {
-	glm::mat4 m, p, mvp;
+	glm::mat4 m, p;
 	m = glm::mat4(1.0f);
 
 	m = glm::translate(m, pos);
