@@ -32,10 +32,10 @@ void CanvasObject::Draw() {
 	m = glm::translate(m, pos);
 
 
-	m = glm::rotate(m, rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	m = glm::rotate(m, -rotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	m = glm::scale(m, scale);
 
-	p = glm::ortho(-Screen_width / 2, Screen_width / 2, -Screen_height / 2, Screen_height / 2, 1.0f, -1.0f);
+	p = glm::ortho(0.0f, Screen_width, Screen_height, 0.f, -1.0f, 1.0f);
 
 	model->Draw(m, p);
 }

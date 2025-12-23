@@ -99,25 +99,33 @@ void MainApp() {
 
 
 	//'start()'
+	CanvasManager::inputManager = inputManager;
+	CanvasManager::obj= std::make_shared<CanvasObject>();
 	
 
-	CanvasManager::inputManager = inputManager;
-	canvasManager->obj= std::make_shared<CanvasObject>();
-	go = canvasManager->obj;
-	
+	go = CanvasManager::obj;
+	//load some image, replace with CanvasManager call
 	ImagePtr images[] = {
-		std::make_shared<Image>("C:\\temp\\test.png"),
+		std::make_shared<Image>("C:\\temp\\testgg.png"),
 		std::make_shared<Image>("C:\\temp\\test1.png"),
 		std::make_shared<Image>("C:\\temp\\test2.png"),
 		std::make_shared<Image>("C:\\temp\\test3.png"),
 		std::make_shared<Image>("C:\\temp\\test4.png")
 	};
+
 	go->LoadImageSync(images[0]);
+	//put this into a call you'll do as part of canvasManager
 	go->scale.x = (float)images[0]->width;
 	go->scale.y = (float)images[0]->height;
+
+
+	CanvasManager::Init();
+
+
 	int i = 0;
 	float timestamp = 0;
-	static GLsync gpuFence = nullptr;
+
+	//static GLsync gpuFence = nullptr;
 
 	bool runApp = true;
 	while (runApp)
@@ -134,10 +142,9 @@ void MainApp() {
 
 
 		glfwPollEvents();//input
-
 		inputManager->UpdateCursorPos(window);
-
 		inputManager->ProcessHeld();
+
 		//'update' like portion
 		
 
@@ -145,6 +152,7 @@ void MainApp() {
 		//go->scale.x = 1+0.5*sin((float)glfwGetTime());
 		//go->scale.y = 1 + 0.5 * cos((float)glfwGetTime());
 		//go->pos.x = sin((float)glfwGetTime());
+		
 		//go->rotation = 0.1f*(float)glfwGetTime();
 		
 		double t0 = glfwGetTime();
@@ -188,7 +196,7 @@ void MainApp() {
 		*/
 
 
-		go->rotation = (float)glfwGetTime()/10.0f;
+		//go->rotation = (float)glfwGetTime()/10.0f;
 
 		
 		//render

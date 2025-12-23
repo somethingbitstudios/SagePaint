@@ -3,9 +3,10 @@
 class CanvasManager {
 public:
 	static void Draw();
-	CanvasObjectPtr obj;
-	 
+	static void Drag();
+	static void Init();
+	static CanvasObjectPtr obj; 
 	static InputManagerPtr inputManager;
 	
 };
-typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;
+typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;//not needed?

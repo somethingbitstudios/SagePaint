@@ -27,9 +27,12 @@ public:
 	void ProcessHeld();
 	void SetContext(Key_Context_Enum keyContext);
 	double GetCursorX() { return cursorX; }
+	double GetCursorXDelta() { return cursorX-cursorXold; }
 	double GetCursorY() { return cursorY; }
+	double GetCursorYDelta() { return cursorY-cursorYold; }
 private:
 	double cursorX, cursorY;
+	double cursorXold, cursorYold;
 	std::vector<int> keyHeld;//has data for held keys
 	InputMap keyMap; //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?

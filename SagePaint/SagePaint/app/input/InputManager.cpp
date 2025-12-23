@@ -34,5 +34,7 @@ void InputManager::SetContext(Key_Context_Enum keyContext) {
 	InputMap::SetContext(keyContext);
 }
 void InputManager::UpdateCursorPos(GLFWwindow* window) {
+	cursorXold = cursorX;
+	cursorYold = cursorY;
 	glfwGetCursorPos(window, &cursorX, &cursorY);
 }
