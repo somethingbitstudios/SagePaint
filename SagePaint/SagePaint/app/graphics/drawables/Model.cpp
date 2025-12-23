@@ -13,6 +13,3 @@ void Model::Draw(glm::mat4 m, glm::mat4 p) {
 void Model::Changed() {
 	//DLOG("MODEL changed")
 }
-void Model::SetImage(ImagePtr i) {
-	//DLOG("MODEL setimage")
-}

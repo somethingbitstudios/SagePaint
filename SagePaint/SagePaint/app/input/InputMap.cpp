@@ -158,8 +158,16 @@ void InputMap::Default(int defaultType) {
 		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Drag");
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].funcsHold.emplace_back(a);
 
+		keyMap[GLFW_KEY_W].mode = true; //not additive, override
 
-		
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "ZoomOut");
+		keyMap[GLFW_KEY_W].funcs.emplace_back(a);
+
+		keyMap[GLFW_KEY_S].mode = true; //not additive, override
+
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "ZoomIn");
+		keyMap[GLFW_KEY_S].funcs.emplace_back(a);
+
 		break;
 	}
 }

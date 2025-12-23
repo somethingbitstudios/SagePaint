@@ -16,6 +16,8 @@ void InitInputFunctions() {
     //{ Click,   "Click",   "does click",        1 },
     { CanvasManager::Draw, "Draw", "does click in UI",  0 },
     { CanvasManager::Drag, "Drag", "does dragging the canvas",  0 },
+    { CanvasManager::ZoomOut, "ZoomOut", "zooms the canvas out",  0 },
+    { CanvasManager::ZoomIn, "ZoomIn", "zooms the canvas in",  0 },
 
     //just an example input to show myself that I can call funcs from other files
 };

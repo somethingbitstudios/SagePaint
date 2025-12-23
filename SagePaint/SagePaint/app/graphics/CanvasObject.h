@@ -8,6 +8,9 @@ public:
 	~CanvasObject();
 	void LoadImageSync(std::string path);
 	void LoadImageSync(ImagePtr i);
+	void Changed();
+	void SetZoom(float zoom);
+	CanvasModelPtr model;
 	ImagePtr image;
 	void Draw() override;
 	int GetType() const override { return 1; }

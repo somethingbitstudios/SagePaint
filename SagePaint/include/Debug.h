@@ -35,6 +35,19 @@
 //app notes:
 
 /*
+* TODO:
+* fix non-integer scaling making inconsistent pixels (filtering toggle?), like this:
+* 
+* 
+* if (isIntegerScale) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+} else {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+in the draw call or call a special function in the canvasmanager (preferred)
+* 
 * 
 * writing part:
 * there is currently some delay between the mouse and program

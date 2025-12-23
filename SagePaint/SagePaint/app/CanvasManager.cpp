@@ -2,10 +2,11 @@
 
 InputManagerPtr CanvasManager::inputManager = nullptr;
 CanvasObjectPtr CanvasManager::obj = nullptr;
-float zoom = 8.0f;
+
+float CanvasManager::zoom = 1.f;
+
 void CanvasManager::Init() {
-	obj->scale.x = (float)obj->image->width * zoom;
-	obj->scale.y = (float)obj->image->height * zoom;
+	obj->SetZoom(zoom);
 	obj->pos.x = obj->image->width/2 * zoom;
 	obj->pos.y = obj->image->height/2 * zoom;
 
@@ -24,7 +25,7 @@ void CanvasManager::Draw() {
 		obj->image->texture[index + 1] = 0;
 		obj->image->texture[index + 2] = 0;
 		obj->image->texture[index + 3] = 0;
-		obj->LoadImageSync(obj->image);//funny, maybe a simple reloadimage() would be better at this point?
+		obj->Changed();
 
 	}
 	
@@ -37,4 +38,13 @@ void CanvasManager::Drag() {
 	
 	obj->pos.x += ((float)dx);
 	obj->pos.y += ((float)dy);
+}
+
+void CanvasManager::ZoomOut() {
+	zoom -= 0.2f;
+	obj->SetZoom(zoom);
+}
+void CanvasManager::ZoomIn() {
+	zoom += 0.2f;
+	obj->SetZoom(zoom);
 }

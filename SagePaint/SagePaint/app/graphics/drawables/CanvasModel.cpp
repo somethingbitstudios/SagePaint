@@ -64,7 +64,21 @@ static GLuint texture;
 void CanvasModel::Changed() {
 	SetImage(image);
 }
-
+void CanvasModel::SetZoom(float zoom) {
+	DLOG(fmod(zoom,1.f))
+	if (
+		fmod(zoom,1.0f)<0.001f //integer scaling
+		||
+		zoom >= 6.f //image so zoomed the non-integer scaling error is small
+		) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//this is the best for now, but use shaders to get better image
+	}
+	else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+}
 
 void CanvasModel::SetImage(ImagePtr i) {
 	int oldw=0,oldh=0;
@@ -156,7 +170,7 @@ CanvasModel::CanvasModel() :Model() {
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

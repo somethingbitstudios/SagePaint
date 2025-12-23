@@ -23,7 +23,9 @@ CanvasObject::~CanvasObject() {
 	DLOG("Canvas start deletion")
 	
 }
-
+void CanvasObject::Changed() {
+	model->Changed();
+}
 
 void CanvasObject::Draw() {
 	glm::mat4 m, p;
@@ -36,6 +38,10 @@ void CanvasObject::Draw() {
 	m = glm::scale(m, scale);
 
 	p = glm::ortho(0.0f, Screen_width, Screen_height, 0.f, -1.0f, 1.0f);
-
 	model->Draw(m, p);
+}
+void CanvasObject::SetZoom(float zoom) {
+	scale.x = (float)image->width * zoom;
+	scale.y = (float)image->height * zoom;
+	model->SetZoom(zoom);
 }

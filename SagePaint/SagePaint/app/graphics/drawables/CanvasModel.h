@@ -21,7 +21,8 @@ public:
 	void Draw(glm::mat4 m, glm::mat4 p) override;
 	CanvasModel();
 	~CanvasModel();
-	void SetImage(ImagePtr i)override;
+	void SetImage(ImagePtr i);
+	void SetZoom(float zoom); //this will update the filtering 
 	void Changed()override;
 	ImagePtr image;
 };
