@@ -115,9 +115,6 @@ void MainApp() {
 
 	go->LoadImageSync(images[0]);
 	//put this into a call you'll do as part of canvasManager
-	go->scale.x = (float)images[0]->width;
-	go->scale.y = (float)images[0]->height;
-
 
 	CanvasManager::Init();
 

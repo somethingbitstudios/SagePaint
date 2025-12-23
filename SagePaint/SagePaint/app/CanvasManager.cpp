@@ -2,17 +2,31 @@
 
 InputManagerPtr CanvasManager::inputManager = nullptr;
 CanvasObjectPtr CanvasManager::obj = nullptr;
+float zoom = 8.0f;
 void CanvasManager::Init() {
-	obj->pos.x = obj->image->width/2;
-	obj->pos.y = obj->image->height /2;
+	obj->scale.x = (float)obj->image->width * zoom;
+	obj->scale.y = (float)obj->image->height * zoom;
+	obj->pos.x = obj->image->width/2 * zoom;
+	obj->pos.y = obj->image->height/2 * zoom;
+
 }
 void CanvasManager::Draw() {
 	
 	double x = inputManager->GetCursorX();
 	double y = inputManager->GetCursorY();
 	
-	//	obj->pos.x = ((float)x) - Screen_width / 2;
-	//obj->pos.y = -((float)y) + Screen_height / 2;
+	int relX = ((x - obj->pos.x) / zoom + obj->image->width/2.0f);
+	int relY = ((y - obj->pos.y) / zoom + obj->image->height / 2.0f);
+	//is target pixel in image? (not just mouse, the precise pixel)
+	if (relX >= 0 && relX < obj->image->width && relY >= 0 && relY < obj->image->height) {
+		int index = (relX + relY * obj->image->width) * 4;
+		obj->image->texture[index] = 0;
+		obj->image->texture[index + 1] = 0;
+		obj->image->texture[index + 2] = 0;
+		obj->image->texture[index + 3] = 0;
+		obj->LoadImageSync(obj->image);//funny, maybe a simple reloadimage() would be better at this point?
+
+	}
 	
 }
 
