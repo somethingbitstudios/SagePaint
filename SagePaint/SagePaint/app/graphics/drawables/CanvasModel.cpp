@@ -110,7 +110,7 @@ CanvasModel::CanvasModel() :Model() {
 		glShaderSource(vertex_shader, 1, &srcVert, NULL);
 		glCompileShader(vertex_shader);
 
-		fragment_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.frag");
+		fragment_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader_v2.frag");
 		const char* srcFrag = fragment_shader_text.c_str();
 
 		const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
