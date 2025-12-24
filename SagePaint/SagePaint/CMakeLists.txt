@@ -29,3 +29,11 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET SagePaint PROPERTY CXX_STANDARD 20)
 endif()
 
+add_custom_command(
+    TARGET SagePaint
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/SagePaint/shaders
+            $<TARGET_FILE_DIR:SagePaint>/shaders
+)
+

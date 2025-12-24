@@ -26,28 +26,8 @@ static const char* fragment_shader_text =
 */
 
 
-static const char* vertex_shader_text =
-"#version 330\n"
-"uniform mat4 MVP;\n"
-"in vec3 vPos;\n"
-"in vec2 vTex;\n"
-"out vec2 TexCoord;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 1.0);\n"
-"    TexCoord=vTex;\n"
-"}\n";
-
-static const char* fragment_shader_text =
-"#version 330\n"
-//"uniform float time;\n"
-"out vec4 fragment;\n"
-"in vec2 TexCoord;\n"
-"uniform sampler2D tex;\n"
-"void main()\n"
-"{\n"
-"    fragment = texture(tex,TexCoord);\n"
-"}\n";
+static std::string vertex_shader_text;
+static std::string fragment_shader_text;
 
 static unsigned int instance_count = 0;
 
@@ -65,18 +45,18 @@ void CanvasModel::Changed() {
 	SetImage(image);
 }
 void CanvasModel::SetZoom(float zoom) {
-	DLOG(fmod(zoom,1.f))
+	//DLOG(fmod(zoom,1.f))
 	if (
 		fmod(zoom,1.0f)<0.001f //integer scaling
 		||
 		zoom >= 6.f //image so zoomed the non-integer scaling error is small
 		) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//this is the best for now, but use shaders to get better image
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//GL_LINEAR
 	}
 }
 
@@ -122,12 +102,19 @@ CanvasModel::CanvasModel() :Model() {
 		glGenBuffers(1, &index_buffer);
 		glGenBuffers(1, &uv_buffer);
 
+		vertex_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.vert");
+		const char* srcVert = vertex_shader_text.c_str();
+		DLOG("scr vert:")
+		DLOG(srcVert)
 		const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
+		glShaderSource(vertex_shader, 1, &srcVert, NULL);
 		glCompileShader(vertex_shader);
 
+		fragment_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.frag");
+		const char* srcFrag = fragment_shader_text.c_str();
+
 		const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
+		glShaderSource(fragment_shader, 1, &srcFrag, NULL);
 		glCompileShader(fragment_shader);
 
 		program = glCreateProgram();
@@ -209,6 +196,9 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	//send uniform to shader
 	GLint texLoc = glGetUniformLocation(program, "tex");
 	glUniform1i(texLoc, 0);
+
+	GLint texSizeLoc = glGetUniformLocation(program, "texSize");
+	glUniform2f(texSizeLoc, (float)image->width, (float)image->height);
 
 
 	//consider using 'Uniform buffer objects'(?idk, meh) if there are too many uniforms
