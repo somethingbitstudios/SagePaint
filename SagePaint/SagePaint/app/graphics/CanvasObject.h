@@ -9,7 +9,7 @@ public:
 	void LoadImageSync(std::string path);
 	void LoadImageSync(ImagePtr i);
 	void Changed();
-	void SetZoom(float zoom);
+	void SetZoom(float zoom, float forceNearestThreshold);
 	CanvasModelPtr model;
 	ImagePtr image;
 	void Draw() override;

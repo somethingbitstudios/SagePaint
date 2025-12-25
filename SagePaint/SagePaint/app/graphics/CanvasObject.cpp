@@ -40,8 +40,9 @@ void CanvasObject::Draw() {
 	p = glm::ortho(0.0f, Screen_width, Screen_height, 0.f, -1.0f, 1.0f);
 	model->Draw(m, p);
 }
-void CanvasObject::SetZoom(float zoom) {
+void CanvasObject::SetZoom(float zoom,float forceNearestThreshold) {
+
 	scale.x = (float)image->width * zoom;
 	scale.y = (float)image->height * zoom;
-	model->SetZoom(zoom);
+	model->SetZoom(zoom,forceNearestThreshold);
 }

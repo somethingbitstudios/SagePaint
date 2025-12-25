@@ -21,3 +21,4 @@ GLuint rect_indices[] = {
 float Screen_ratio = 1;
 float Screen_width = 1920;
 float Screen_height = 1000;
+

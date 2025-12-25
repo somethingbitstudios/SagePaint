@@ -4,6 +4,7 @@
 #include <functional>
 #include "InputMap.h"
 #include <GLFW/glfw3.h>
+#include <glm/ext/vector_float2.hpp>
 
 //ok so it works like:
 /*
@@ -26,13 +27,16 @@ public:
 	void Input(int key, int action, int mods);
 	void ProcessHeld();
 	void SetContext(Key_Context_Enum keyContext);
-	double GetCursorX() { return cursorX; }
-	double GetCursorXDelta() { return cursorX-cursorXold; }
-	double GetCursorY() { return cursorY; }
-	double GetCursorYDelta() { return cursorY-cursorYold; }
+	glm::vec2 GetCursorPos() { return glm::vec2 { cursorX, cursorY }; }
+	glm::vec2 GetCursorPosDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
+
+	float GetCursorX() { return cursorX; }
+	float GetCursorXDelta() { return cursorX-cursorXold; }
+	float GetCursorY() { return cursorY; }
+	float GetCursorYDelta() { return cursorY-cursorYold; }
 private:
-	double cursorX, cursorY;
-	double cursorXold, cursorYold;
+	float cursorX, cursorY;
+	float cursorXold, cursorYold;
 	std::vector<int> keyHeld;//has data for held keys
 	InputMap keyMap; //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?

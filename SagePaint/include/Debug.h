@@ -47,6 +47,8 @@
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 in the draw call or call a special function in the canvasmanager (preferred)
+
+NOTE: this isn't a good solution, a real solution would be very hard, might try later
 * 
 * 
 * writing part:

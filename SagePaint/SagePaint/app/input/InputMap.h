@@ -31,7 +31,7 @@ private:
 	std::unordered_map<int, KeyAction> keyMap; // not sure if an array would not be better after all, but it depends on the amount of used keys I suppose, this saves space
 	
 	//static Key_Context_Enum keyContext;
-public:
+public: 
 	InputMap(); //this one is for 'no init'
 	InputMap(int defaultType);//this one calls default
 

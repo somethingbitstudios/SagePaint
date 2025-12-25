@@ -25,7 +25,7 @@
 #include <GLFW/glfw3native.h>
 #endif
 #include "CanvasManager.h"
-
+#include "shortcuts.h"
 InputManagerPtr inputManager = std::make_shared<InputManager>();
 CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
@@ -104,9 +104,9 @@ void MainApp() {
 	
 
 	go = CanvasManager::obj;
-	//load some image, replace with CanvasManager call
+	//load some image, replace with CanvasManager call 
 	ImagePtr images[] = {
-		std::make_shared<Image>("C:\\temp\\testgg.png"),
+		std::make_shared<Image>("C:\\temp\\miku.png"),
 		std::make_shared<Image>("C:\\temp\\test1.png"),
 		std::make_shared<Image>("C:\\temp\\test2.png"),
 		std::make_shared<Image>("C:\\temp\\test3.png"),
@@ -116,7 +116,7 @@ void MainApp() {
 	go->LoadImageSync(images[0]);
 	//put this into a call you'll do as part of canvasManager
 
-	CanvasManager::Init();
+	CanvasManager::Init(); 
 
 
 	int i = 0;
@@ -127,8 +127,6 @@ void MainApp() {
 	bool runApp = true;
 	while (runApp)
 	{
-
-
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 		Screen_width = (float)width;

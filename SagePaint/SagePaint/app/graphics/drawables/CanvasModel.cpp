@@ -1,5 +1,5 @@
 #include "CanvasModel.h"
-
+#include "../../CanvasManager.h"
 
 /* this shader set uses time and position in fragment, the position might not be optimal because 2x MVP * vec4 is not needed
 static const char* vertex_shader_text =
@@ -44,19 +44,19 @@ static GLuint texture;
 void CanvasModel::Changed() {
 	SetImage(image);
 }
-void CanvasModel::SetZoom(float zoom) {
+void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	//DLOG(fmod(zoom,1.f))
 	if (
+		zoom >= forceNearestThreshold ||
 		fmod(zoom,1.0f)<0.001f //integer scaling
-		||
-		zoom >= 6.f //image so zoomed the non-integer scaling error is small
+		
 		) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//GL_LINEAR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//GL_LINEAR
 	}
 }
 
@@ -109,10 +109,10 @@ CanvasModel::CanvasModel() :Model() {
 		const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex_shader, 1, &srcVert, NULL);
 		glCompileShader(vertex_shader);
-
-		fragment_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader_v2.frag");
+		 
+		fragment_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.frag");
 		const char* srcFrag = fragment_shader_text.c_str();
-
+		 
 		const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragment_shader, 1, &srcFrag, NULL);
 		glCompileShader(fragment_shader);
@@ -190,15 +190,17 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	mvp = p * m;
 	glUseProgram(program);
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	//send uniform to shader
 	GLint texLoc = glGetUniformLocation(program, "tex");
 	glUniform1i(texLoc, 0);
 
-	GLint texSizeLoc = glGetUniformLocation(program, "texSize");
-	glUniform2f(texSizeLoc, (float)image->width, (float)image->height);
+	//GLint texSizeLoc = glGetUniformLocation(program, "texSize");
+	//glUniform2f(texSizeLoc, (float)image->width, (float)image->height);
+	//GLint screenSizeLoc = glGetUniformLocation(program, "screenSize");
+	//glUniform2f(screenSizeLoc, (float)Screen_width, (float)Screen_height);
 
 
 	//consider using 'Uniform buffer objects'(?idk, meh) if there are too many uniforms

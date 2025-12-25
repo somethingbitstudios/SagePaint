@@ -10,5 +10,11 @@ public:
 	static CanvasObjectPtr obj; 
 	static InputManagerPtr inputManager;
 	static float zoom;
+	static float zoomRateAdditiveMicro;
+	static float zoomRateAdditiveMacro;
+	static float zoomRateMultiplicative;
+
+	static float scalingNonIntUseLinearThreshold;
+	static bool zoomType;//false -> mul, true -> add
 };
 typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;//not needed?

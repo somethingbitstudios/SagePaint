@@ -22,7 +22,7 @@ public:
 	CanvasModel();
 	~CanvasModel();
 	void SetImage(ImagePtr i);
-	void SetZoom(float zoom); //this will update the filtering 
+	void SetZoom(float zoom, float forceNearestThreshold); //this will update the filtering 
 	void Changed()override;
 	ImagePtr image;
 };
