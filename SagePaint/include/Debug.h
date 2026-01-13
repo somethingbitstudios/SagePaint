@@ -36,6 +36,12 @@
 
 /*
 * TODO:
+add a UI setting that only allows integer scaling (so additive: 1,2,3... on macro, multiplicative: 2,3,4...) when magnifying
+
+
+look into implementing shared_from_this() in objects, would be easier to get a pointer
+
+shelved TODOs:
 * fix non-integer scaling making inconsistent pixels (filtering toggle?), like this:
 * 
 * 
@@ -82,9 +88,14 @@ a) have virtual funcs and override them
 +  ~performance loss
 -  means Model needs to contain all functions of every model
 
+
 b) fix through casting - static_cast<TargetClass*>(SourceClass*)->Thing()
 + no clutter in Model and other parent classes ()
 - slight performance loss
+
+c) combination
+using virtual functions for important features a lot of children might have, but for one off funcs use the cast
+or simply have the ChildTypePtr because you'll need it (use getShared())
 */
 
 /*
