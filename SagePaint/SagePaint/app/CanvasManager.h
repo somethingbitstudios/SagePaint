@@ -8,7 +8,6 @@ public:
 	static void ZoomOut();
 	static void ZoomIn();
 	static CanvasObjectPtr obj; 
-	static InputManagerPtr inputManager;
 	static float zoom;
 	static float zoomRateAdditiveMicro;
 	static float zoomRateAdditiveMacro;
@@ -17,4 +16,4 @@ public:
 	static float scalingNonIntUseLinearThreshold;
 	static bool zoomType;//false -> mul, true -> add
 };
-typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;//not needed?
+//typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;//not needed?

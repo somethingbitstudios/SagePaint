@@ -1,13 +1,16 @@
 #include "InputManager.h"
 #include "InputFunctions.h"
 InputManager::InputManager() {
+
+}
+InputManager::~InputManager() {
+
+}
+void InputManager::Init() {
 	SetContext(KEY_CONTEXT_UI);//WARN: set to ui instead of default for testing only
 	InitInputFunctions();
 
 	keyMap.Default(0);
-}
-InputManager::~InputManager() {
-
 }
 void InputManager::LoadInputMap(std::string path) {
 
@@ -34,10 +37,24 @@ void InputManager::SetContext(Key_Context_Enum keyContext) {
 	InputMap::SetContext(keyContext);
 }
 void InputManager::UpdateCursorPos(GLFWwindow* window) {
-	cursorXold = cursorX;
-	cursorYold = cursorY;
+	cursorXold = cursorX.load();
+	cursorYold = cursorY.load();
 	double x, y;
 	glfwGetCursorPos(window, &x, &y);
 	cursorX = x;
 	cursorY = y;
 } 
+void InputManager::SetCursorPos(float x, float y) {
+	cursorXold = cursorX.load();
+	cursorYold = cursorY.load();
+	
+	cursorX = x;
+	cursorY = y;
+}
+
+std::atomic<float> InputManager::cursorX;
+std::atomic<float> InputManager::cursorY;
+std::atomic<float> InputManager::cursorYold;
+std::atomic<float> InputManager::cursorXold;
+InputMap InputManager::keyMap;
+std::vector<int> InputManager::keyHeld;

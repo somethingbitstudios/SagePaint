@@ -1,35 +1,11 @@
 #include "MainApp.h"
 
-#include <GL/glew.h>
-
-#define GLFW_INCLUDE_NONE
-#include <GLFW\glfw3.h>
-
-#include "linmath.h"
-
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "./graphics/Common.h"
-
-//#include "graphics/TriObject.h"
-#include "graphics/CanvasObject.h"
-
-#include "input/InputManager.h"
-
-#ifdef WINDOWS_BUILD
-#include <Windows.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-#endif
-#include "CanvasManager.h"
-#include "shortcuts.h"
-InputManagerPtr inputManager = std::make_shared<InputManager>();
-CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
+//InputManagerPtr inputManager = std::make_shared<InputManager>();
+//CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
 CanvasObjectPtr go;
+bool runApp = true;
+
 static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
@@ -37,7 +13,7 @@ static void error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-		inputManager->Input(key, action, mods);
+		InputManager::Input(key, action, mods);
 	//if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 	//	glfwSetWindowShouldClose(window, GLFW_TRUE);
 	
@@ -46,17 +22,17 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	//DLOG("[INPUT] Mouse: " << button << " Action: " << action)
-		inputManager->Input(button, action, mods);
+		InputManager::Input(button, action, mods);
 	//if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 	//	DLOG("what")
 	//}
 }
+//I prefer calling it directly so it always updates even when staying still
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	//DLOG("[INPUT] Mouse position: " << xpos << "x " << ypos << "y")
-		
-
+	InputManager::SetCursorPos(xpos, ypos);
 }
+
 
 void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
@@ -97,9 +73,8 @@ void MainApp() {
 
 
 
-
+	InputManager::Init();
 	//'start()'
-	CanvasManager::inputManager = inputManager;
 	CanvasManager::obj= std::make_shared<CanvasObject>();
 	
 
@@ -119,12 +94,15 @@ void MainApp() {
 	CanvasManager::Init(); 
 
 
+
+	
+
 	int i = 0;
 	float timestamp = 0;
 
 	//static GLsync gpuFence = nullptr;
 
-	bool runApp = true;
+	double t1=0;
 	while (runApp)
 	{
 		int width, height;
@@ -134,11 +112,17 @@ void MainApp() {
 		Screen_ratio = width / (float)height;
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
+		
+		/*
+		double t0 = glfwGetTime();
+		DLOG("time: " << t0 - t1)
+			t1 = t0;
+		*/
 
 
-		glfwPollEvents();//input
-		inputManager->UpdateCursorPos(window);
-		inputManager->ProcessHeld();
+		glfwPollEvents();
+		//InputManager::UpdateCursorPos(window);
+		InputManager::ProcessHeld();
 
 		//'update' like portion
 		
@@ -150,7 +134,7 @@ void MainApp() {
 		
 		//go->rotation = 0.1f*(float)glfwGetTime();
 		
-		double t0 = glfwGetTime();
+		
 
 		/*
 		double xpos = inputManager->GetCursorX();
@@ -225,3 +209,4 @@ void MainApp() {
 
 	
 }
+

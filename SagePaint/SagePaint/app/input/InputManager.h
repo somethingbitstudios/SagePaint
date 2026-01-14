@@ -7,7 +7,7 @@
 #include <glm/ext/vector_float2.hpp>
 
 //ok so it works like:
-/*
+/* WARN / TODO: maybe this would be better as a static class?
 INputmanager loads InputMap
 InputMap has map where keys(int) are assigned Keyaction
 KeyAction has priority (to be able to override binds based on things like what view is open (general vs animation keybinds) )
@@ -21,24 +21,25 @@ class InputManager  {
 public:
 	InputManager();
 	~InputManager();
-	void LoadInputMap(std::string path); //json?
-	void UpdateCursorPos(GLFWwindow* window);
+	static void Init();
+	static void LoadInputMap(std::string path); //json?
+	static void UpdateCursorPos(GLFWwindow* window);
+	static void SetCursorPos(float x,float y);
+	static void Input(int key, int action, int mods);
+	static void ProcessHeld();
+	static void SetContext(Key_Context_Enum keyContext);
+	static inline glm::vec2 GetCursorPos() { return glm::vec2 { cursorX.load(), cursorY.load()}; }
+	static inline glm::vec2 GetCursorPosDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
 
-	void Input(int key, int action, int mods);
-	void ProcessHeld();
-	void SetContext(Key_Context_Enum keyContext);
-	glm::vec2 GetCursorPos() { return glm::vec2 { cursorX, cursorY }; }
-	glm::vec2 GetCursorPosDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
-
-	float GetCursorX() { return cursorX; }
-	float GetCursorXDelta() { return cursorX-cursorXold; }
-	float GetCursorY() { return cursorY; }
-	float GetCursorYDelta() { return cursorY-cursorYold; }
+	static inline float GetCursorX() { return cursorX; }
+	static inline float GetCursorXDelta() { return cursorX-cursorXold; }
+	static inline float GetCursorY() { return cursorY; }
+	static inline float GetCursorYDelta() { return cursorY-cursorYold; }
 private:
-	float cursorX, cursorY;
-	float cursorXold, cursorYold;
-	std::vector<int> keyHeld;//has data for held keys
-	InputMap keyMap; //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
+	static std::atomic<float> cursorX, cursorY;//WARN: not sure atomic is neccesary, test later
+	static std::atomic<float> cursorXold, cursorYold;
+	static std::vector<int> keyHeld;//has data for held keys
+	static InputMap keyMap; //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?
 };
 

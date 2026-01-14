@@ -1,6 +1,5 @@
 #include "CanvasManager.h"
 #include "shortcuts.h"
-InputManagerPtr CanvasManager::inputManager = nullptr;
 CanvasObjectPtr CanvasManager::obj = nullptr;
 
 float CanvasManager::zoom = 1.f;
@@ -17,10 +16,11 @@ void CanvasManager::Init() {
 	obj->pos.y = obj->image->height/2 * zoom;
 
 }
+int ii = 0;
 void CanvasManager::Draw() {
-	
-	double x = inputManager->GetCursorX();
-	double y = inputManager->GetCursorY();
+	DLOG("Drawing "<<ii++)
+	double x = InputManager::GetCursorX();
+	double y = InputManager::GetCursorY();
 	
 	int relX = ((x - obj->pos.x) / zoom + obj->image->width/2.0f);
 	int relY = ((y - obj->pos.y) / zoom + obj->image->height / 2.0f);
@@ -39,8 +39,8 @@ void CanvasManager::Draw() {
 
 
 void CanvasManager::Drag() {
-	double dx = inputManager->GetCursorXDelta();
-	double dy = inputManager->GetCursorYDelta();
+	double dx = InputManager::GetCursorXDelta();
+	double dy = InputManager:: GetCursorYDelta();
 	
 	obj->pos.x += ((float)dx);
 	obj->pos.y += ((float)dy);
@@ -51,7 +51,7 @@ void CanvasManager::ZoomOut() {
 		if (zoom > 1.f) {
 			DLOG("macro out")
 			if (zoom <= zoomRateAdditiveMacro)return;
-			glm::vec2 mouse = inputManager->GetCursorPos();
+			glm::vec2 mouse = InputManager::GetCursorPos();
 			glm::vec2 diff = mouse - (glm::vec2)obj->pos;
 			diff *= zoomRateAdditiveMacro / zoom;
 			zoom -= zoomRateAdditiveMacro;
@@ -65,7 +65,7 @@ void CanvasManager::ZoomOut() {
 
 			DLOG("micro out")
 			if (zoom <= zoomRateAdditiveMicro)return;
-			glm::vec2 mouse = inputManager->GetCursorPos();
+			glm::vec2 mouse = InputManager::GetCursorPos();
 			glm::vec2 diff = mouse - (glm::vec2)obj->pos;
 			diff *= zoomRateAdditiveMicro / zoom;
 			zoom -= zoomRateAdditiveMicro;
@@ -79,7 +79,7 @@ void CanvasManager::ZoomOut() {
 	}
 	else {
 		if (zoom <= 0.05f)return;
-		glm::vec2 mouse = inputManager->GetCursorPos();
+		glm::vec2 mouse = InputManager::GetCursorPos();
 		glm::vec2 diff = mouse - (glm::vec2)obj->pos;
 		diff *= (1.0f - 1.0f / zoomRateMultiplicative);
 		
@@ -97,7 +97,7 @@ void CanvasManager::ZoomIn() {
 	if (zoom > 100)return; //fixed number for now
 	if (zoomType) {
 		
-		glm::vec2 mouse = inputManager->GetCursorPos();
+		glm::vec2 mouse = InputManager::GetCursorPos();
 		glm::vec2 diff = mouse - (glm::vec2)obj->pos;
 		if (zoom >= 1.0f) {
 
@@ -119,7 +119,7 @@ void CanvasManager::ZoomIn() {
 		obj->pos.y -= diff.y;
 	}
 	else {
-		glm::vec2 mouse = inputManager->GetCursorPos();
+		glm::vec2 mouse = InputManager::GetCursorPos();
 		glm::vec2 diff = mouse - (glm::vec2)obj->pos;
 		diff *= (-1.f + zoomRateMultiplicative);
 		zoom *= zoomRateMultiplicative;
