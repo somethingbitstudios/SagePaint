@@ -30,7 +30,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 //I prefer calling it directly so it always updates even when staying still
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	InputManager::SetCursorPos(xpos, ypos);
+	//InputManager::SetCursorPos(xpos, ypos); TODO: USE AFTER IMPLEMENTING POSITIONBUFFER
 }
 
 
@@ -121,7 +121,7 @@ void MainApp() {
 
 
 		glfwPollEvents();
-		//InputManager::UpdateCursorPos(window);
+		InputManager::UpdateCursorPos(window);
 		InputManager::ProcessHeld();
 
 		//'update' like portion

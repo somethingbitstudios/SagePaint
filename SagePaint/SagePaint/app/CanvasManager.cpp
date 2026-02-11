@@ -18,7 +18,7 @@ void CanvasManager::Init() {
 }
 int ii = 0;
 void CanvasManager::Draw() {
-	DLOG("Drawing "<<ii++)
+	//DLOG("Drawing "<<ii++)
 	double x = InputManager::GetCursorX();
 	double y = InputManager::GetCursorY();
 	
