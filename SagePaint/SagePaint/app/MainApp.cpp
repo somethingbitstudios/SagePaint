@@ -1,4 +1,7 @@
 #include "MainApp.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 //InputManagerPtr inputManager = std::make_shared<InputManager>();
 //CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
@@ -70,6 +73,17 @@ void MainApp() {
 	glewInit();
 	glfwSwapInterval(0);//when ==1, mouse movement caused small stutters
 
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
 
 
 
@@ -94,7 +108,6 @@ void MainApp() {
 	CanvasManager::Init(); 
 
 
-
 	
 
 	int i = 0;
@@ -105,6 +118,7 @@ void MainApp() {
 	double t1=0;
 	while (runApp)
 	{
+		//frame init
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 		Screen_width = (float)width;
@@ -112,12 +126,11 @@ void MainApp() {
 		Screen_ratio = width / (float)height;
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
 		
-		/*
-		double t0 = glfwGetTime();
-		DLOG("time: " << t0 - t1)
-			t1 = t0;
-		*/
 
 
 		glfwPollEvents();
@@ -125,67 +138,110 @@ void MainApp() {
 		InputManager::ProcessHeld();
 
 		//'update' like portion
+
+		{
+
+			//go->scale.x = 1+0.5*sin((float)glfwGetTime());
+			//go->scale.y = 1 + 0.5 * cos((float)glfwGetTime());
+			//go->pos.x = sin((float)glfwGetTime());
+
+			//go->rotation = 0.1f*(float)glfwGetTime();
+
+
+
+			/*
+			double xpos = inputManager->GetCursorX();
+			double ypos = inputManager->GetCursorY();
+
+
+			*/
+
+
+			/*
+			double xpos;
+			double ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			*/
+			//DLOG(xpos << "x")
+			//DLOG(ypos << "y")
+			/*
+			go->pos.x = ((float)xpos)-Screen_width/2;
+			go->pos.y = -((float)ypos)+Screen_height/2;
+			if ((float)glfwGetTime() - timestamp > 5.0f) {
+				timestamp = (float)glfwGetTime();
+				i++;
+				i %= 5;
+				go->LoadImageSync(images[i]);
+				go->scale.x = (float)images[i]->width;
+				go->scale.y = (float)images[i]->height;
+
+			}
+			*/
+			/* changing pixels
+			int gg = (float)glfwGetTime() * 10;
+
+			for (int o = 64000; o < images[0]->width * 2000; o++) {
+				images[0]->texture[o] = (char)((gg + o * 10) % 256);
+			}
+
+			go->LoadImageSync(images[0]);
+			*/
+
+
+			//go->rotation = (float)glfwGetTime()/10.0f;
+	}
 		
+		double t0 = glfwGetTime();
+		//DLOG("time: " << t0 - t1)
+		double frameTime = t0 - t1;
+		t1 = t0;
+
+		static double displayedFPS = 0.0;
+
+		{
+			static double frameTimes[10] = { 0 };
+			static int frameIndex = 0;
+			static int frameCount = 0;
+
+			frameTimes[frameIndex] = frameTime;
+			frameIndex = (frameIndex + 1) % 10;
+			if (frameCount < 10) frameCount++;
+
+			double sum = 0.0;
+			for (int i = 0; i < frameCount; i++)
+				sum += frameTimes[i];
+
+			double avgFrameTime = sum / frameCount;
+			double fps = avgFrameTime > 0.0 ? 1.0 / avgFrameTime : 0.0;
 
 
-		//go->scale.x = 1+0.5*sin((float)glfwGetTime());
-		//go->scale.y = 1 + 0.5 * cos((float)glfwGetTime());
-		//go->pos.x = sin((float)glfwGetTime());
-		
-		//go->rotation = 0.1f*(float)glfwGetTime();
-		
-		
+			static double lastUpdate = 0.0;
 
-		/*
-		double xpos = inputManager->GetCursorX();
-		double ypos = inputManager->GetCursorY();
-
-
-		*/
-
-
-		/*
-		double xpos;
-		double ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		*/
-		//DLOG(xpos << "x")
-		//DLOG(ypos << "y")
-		/*
-		go->pos.x = ((float)xpos)-Screen_width/2;
-		go->pos.y = -((float)ypos)+Screen_height/2;
-		if ((float)glfwGetTime() - timestamp > 5.0f) {
-			timestamp = (float)glfwGetTime();
-			i++;
-			i %= 5;
-			go->LoadImageSync(images[i]);
-			go->scale.x = (float)images[i]->width;
-			go->scale.y = (float)images[i]->height;
-
+			if (t0 - lastUpdate >= 0.5)
+			{
+				displayedFPS = fps;
+				lastUpdate = t0;
+			}
 		}
-		*/
-		/* changing pixels
-		int gg = (float)glfwGetTime() * 10;
-
-		for (int o = 64000; o < images[0]->width * 2000; o++) {
-			images[0]->texture[o] = (char)((gg + o * 10) % 256);
-		}
-
-		go->LoadImageSync(images[0]);
-		*/
 
 
-		//go->rotation = (float)glfwGetTime()/10.0f;
-
-		
-		//render
+		//render objects
 		go->Draw();
 
+		//render UI
+		
+		//allows drawing directly
+		ImDrawList* draw = ImGui::GetForegroundDrawList();
+		draw->AddText(ImVec2(10, 10), IM_COL32(255, 255, 255, 255),
+			("FPS: " + std::to_string(displayedFPS)).c_str());
 
-		//printf("Frame time: %.3f ms\n", (glfwGetTime() - t0) * 1000.0);
+		//ImGui::ShowDemoWindow();
 		
 
-
+		
+		
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		
 		glfwSwapBuffers(window);
 
@@ -198,6 +254,8 @@ void MainApp() {
 				//it should:
 			runApp = false;
 			}
+
+		
 	}
 	//destruction
 	

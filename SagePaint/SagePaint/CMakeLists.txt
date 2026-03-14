@@ -16,6 +16,9 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+  
+
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
@@ -23,6 +26,7 @@ target_link_libraries(${PROJECT_NAME}
         GLEW::GLEW
         glfw
         glm::glm
+        imgui::imgui
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
