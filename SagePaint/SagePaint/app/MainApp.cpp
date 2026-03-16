@@ -105,8 +105,15 @@ void MainApp() {
 	go->LoadImageSync(images[0]);
 	//put this into a call you'll do as part of canvasManager
 
-	CanvasManager::Init(); 
+	//TODO: put into a function
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+	Screen_width = (float)width;
+	Screen_height = (float)height;
+	Screen_ratio = width / (float)height;
 
+	CanvasManager::Init(); 
+	
 
 	
 
@@ -119,7 +126,7 @@ void MainApp() {
 	while (runApp)
 	{
 		//frame init
-		int width, height;
+		
 		glfwGetFramebufferSize(window, &width, &height);
 		Screen_width = (float)width;
 		Screen_height = (float)height;
@@ -224,7 +231,6 @@ void MainApp() {
 			}
 		}
 
-
 		//render objects
 		go->Draw();
 
@@ -232,8 +238,40 @@ void MainApp() {
 		
 		//allows drawing directly
 		ImDrawList* draw = ImGui::GetForegroundDrawList();
-		draw->AddText(ImVec2(10, 10), IM_COL32(255, 255, 255, 255),
+		draw->AddText(ImVec2( ImGui::GetIO().DisplaySize.x-92,5), IM_COL32(255, 255, 255, 255),
 			("FPS: " + std::to_string(displayedFPS)).c_str());
+
+
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y));
+
+		ImGui::Begin("LeftMenu", nullptr,
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+		ImGui::Text("Do this and that");
+		if (ImGui::Button("Press"))
+			DLOG("OK")
+
+		ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
+		ImGui::Text(("Y: " + std::to_string(go->pos.y)).c_str());
+
+		ImGui::End();
+		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x-250, 0));
+		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y));
+
+		ImGui::Begin("RightMenu", nullptr,
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+		ImGui::Text("The right menu");
+		if (ImGui::Button("Press"))
+			DLOG("OK")
+
+			ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
+		ImGui::Text(("Y: " + std::to_string(go->pos.y)).c_str());
+
+		ImGui::End();
 
 		//ImGui::ShowDemoWindow();
 		
