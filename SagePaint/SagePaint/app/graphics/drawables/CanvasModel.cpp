@@ -190,6 +190,9 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	mvp = p * m;
 	glUseProgram(program);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glActiveTexture(GL_TEXTURE0);   
 	glBindTexture(GL_TEXTURE_2D, texture);
 

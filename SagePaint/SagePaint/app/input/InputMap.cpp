@@ -147,11 +147,15 @@ void InputMap::Default(int defaultType) {
 	switch (defaultType) {
 	default:
 		
-		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = true; //not additive, override
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = true; //not additive, override = specific actions prevent default behaviour of PointerX
 		
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Draw");
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "PointerDown");
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Pointer");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcsHold.emplace_back(a);
-		
+		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "PointerUp");
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcsRelease.emplace_back(a);
+
 
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].mode = true; //not additive, override
 

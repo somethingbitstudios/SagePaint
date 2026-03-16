@@ -36,6 +36,7 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 	//InputManager::SetCursorPos(xpos, ypos); TODO: USE AFTER IMPLEMENTING POSITIONBUFFER
 }
 
+float backgroundColor[4] = { 0.3f,0.08f,0.3f,1 };//TODO: move to some appstorage class
 
 void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
@@ -95,11 +96,8 @@ void MainApp() {
 	go = CanvasManager::obj;
 	//load some image, replace with CanvasManager call 
 	ImagePtr images[] = {
-		std::make_shared<Image>("C:\\temp\\miku.png"),
-		std::make_shared<Image>("C:\\temp\\test1.png"),
-		std::make_shared<Image>("C:\\temp\\test2.png"),
-		std::make_shared<Image>("C:\\temp\\test3.png"),
-		std::make_shared<Image>("C:\\temp\\test4.png")
+		std::make_shared<Image>("C:\\temp\\gradient.png"),
+		std::make_shared<Image>("C:\\temp\\miku.png")
 	};
 
 	go->LoadImageSync(images[0]);
@@ -132,6 +130,7 @@ void MainApp() {
 		Screen_height = (float)height;
 		Screen_ratio = width / (float)height;
 		glViewport(0, 0, width, height);
+		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -237,41 +236,67 @@ void MainApp() {
 		//render UI
 		
 		//allows drawing directly
-		ImDrawList* draw = ImGui::GetForegroundDrawList();
-		draw->AddText(ImVec2( ImGui::GetIO().DisplaySize.x-92,5), IM_COL32(255, 255, 255, 255),
-			("FPS: " + std::to_string(displayedFPS)).c_str());
+		
+		
 
 
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y));
+		ImGui::SetNextWindowPos(ImVec2(0, 18));
+		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y-18));
 
 		ImGui::Begin("LeftMenu", nullptr,
 			ImGuiWindowFlags_NoResize |
 			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-		ImGui::Text("Do this and that");
-		if (ImGui::Button("Press"))
-			DLOG("OK")
-
-		ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
-		ImGui::Text(("Y: " + std::to_string(go->pos.y)).c_str());
-
+		ImGui::Text("Tools:");
+		if (ImGui::Button("Pencil"))
+			DLOG("Pencil")
+		if (ImGui::Button("Line"))
+			DLOG("Select")
+		
 		ImGui::End();
-		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x-250, 0));
-		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y));
 
+
+		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x-250, 18));
+		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y-18));
 		ImGui::Begin("RightMenu", nullptr,
 			ImGuiWindowFlags_NoResize |
 			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
 		ImGui::Text("The right menu");
-		if (ImGui::Button("Press"))
-			DLOG("OK")
-
-			ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
+		ImGui::ColorEdit4("My Color", (float*)&CanvasManager::color);
+		ImGui::ColorEdit4("Background", (float*)&backgroundColor);
+		ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
 		ImGui::Text(("Y: " + std::to_string(go->pos.y)).c_str());
 
+		if (ImGui::Button("Press"))
+			DLOG("OK")
 		ImGui::End();
+
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("New", "Shortcut")) {}
+				if (ImGui::MenuItem("Open", "Shortcut")) {}
+				if (ImGui::MenuItem("Save", "Shortcut")) {}
+				if (ImGui::MenuItem("Exit")) {}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("View"))
+			{
+
+				ImGui::EndMenu();
+			}
+
+
+			ImGui::EndMainMenuBar();
+		}
+
+		ImDrawList* draw = ImGui::GetForegroundDrawList();
+		draw->AddText(ImVec2(ImGui::GetIO().DisplaySize.x - 92, 3), IM_COL32(255, 255, 255, 255),
+			("FPS: " + std::to_string(displayedFPS)).c_str());
 
 		//ImGui::ShowDemoWindow();
 		

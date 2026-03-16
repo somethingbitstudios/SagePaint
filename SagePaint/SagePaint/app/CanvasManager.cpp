@@ -10,30 +10,17 @@ float CanvasManager::zoomRateMultiplicative = MY_SQRT_2;
 
 float CanvasManager::scalingNonIntUseLinearThreshold = 2;
 
+float CanvasManager::color[4] = {0.0f,0.0f,0.0f,1.0f};
 void CanvasManager::Init() {
 	obj->SetZoom(zoom, scalingNonIntUseLinearThreshold);
 	obj->pos.x = Screen_width / 2;//obj->image->width/2 * zoom;
 	obj->pos.y = Screen_height / 2;//obj->image->height/2 * zoom;
 
-}
-void CanvasManager::Draw() {
-	double x = InputManager::GetCursorX();
-	double y = InputManager::GetCursorY();
-	
-	int relX = ((x - obj->pos.x) / zoom + obj->image->width/2.0f);
-	int relY = ((y - obj->pos.y) / zoom + obj->image->height / 2.0f);
-	//is target pixel in image? (not just mouse, the precise pixel)
-	if (relX >= 0 && relX < obj->image->width && relY >= 0 && relY < obj->image->height) {
-		int index = (relX + relY * obj->image->width) * 4;
-		obj->image->texture[index] = 255;
-		obj->image->texture[index + 1] = 0;
-		obj->image->texture[index + 2] = 255;
-		obj->image->texture[index + 3] = 255;
-		obj->Changed();
 
-	}
-	
 }
+CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }
+
+
 
 
 void CanvasManager::Drag() {

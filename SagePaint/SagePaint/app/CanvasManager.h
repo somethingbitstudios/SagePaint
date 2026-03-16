@@ -2,12 +2,15 @@
 #include "input/InputManager.h"
 class CanvasManager {
 public:
-	static void Draw();
+	static void LineStart();
+	static void PencilDrawBasic();
 	static void Drag();
 	static void Init();
+	static CanvasObjectPtr GetCanvas();
 	static void ZoomOut();
 	static void ZoomIn();
 	static CanvasObjectPtr obj; 
+	static float color[4];
 	static float zoom;
 	static float zoomRateAdditiveMicro;
 	static float zoomRateAdditiveMacro;
