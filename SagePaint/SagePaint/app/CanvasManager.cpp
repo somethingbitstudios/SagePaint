@@ -11,6 +11,9 @@ float CanvasManager::zoomRateMultiplicative = MY_SQRT_2;
 float CanvasManager::scalingNonIntUseLinearThreshold = 2;
 
 float CanvasManager::color[4] = {0.0f,0.0f,0.0f,1.0f};
+
+glm::ivec2 CanvasManager::relativeCursorPos = { 0,0 };
+
 void CanvasManager::Init() {
 	obj->SetZoom(zoom, scalingNonIntUseLinearThreshold);
 	obj->pos.x = Screen_width / 2;//obj->image->width/2 * zoom;
@@ -19,6 +22,19 @@ void CanvasManager::Init() {
 
 }
 CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }
+
+void CanvasManager::UpdateRelativeCursorPos() {
+	double x = InputManager::GetCursorX();
+	double y = InputManager::GetCursorY();
+
+
+	
+	int rel_x = ((x - obj->pos.x) / zoom + obj->image->width / 2.0f);
+	int rel_y = ((y - obj->pos.y) / zoom + obj->image->height / 2.0f);
+	
+
+	relativeCursorPos = { rel_x,rel_y };
+}
 
 
 

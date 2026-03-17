@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-
+#include "./tools/ToolManager.h"
 //InputManagerPtr inputManager = std::make_shared<InputManager>();
 //CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
@@ -141,6 +141,7 @@ void MainApp() {
 
 		glfwPollEvents();
 		InputManager::UpdateCursorPos(window);
+		CanvasManager::UpdateRelativeCursorPos();
 		InputManager::ProcessHeld();
 
 		//'update' like portion
@@ -249,9 +250,9 @@ void MainApp() {
 
 		ImGui::Text("Tools:");
 		if (ImGui::Button("Pencil"))
-			DLOG("Pencil")
+			ToolManager::SetTool(TOOL_PENCIL);
 		if (ImGui::Button("Line"))
-			DLOG("Select")
+			ToolManager::SetTool(TOOL_LINE);
 		
 		ImGui::End();
 

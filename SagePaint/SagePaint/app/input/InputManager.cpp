@@ -1,5 +1,6 @@
 #include "InputManager.h"
 #include "InputFunctions.h"
+//#include "../CanvasManager.h"
 InputManager::InputManager() {
 
 }
@@ -28,7 +29,7 @@ void InputManager::Input(int key, int action, int mods) {
 	}
 	keyMap.Action(key, action, mods);
 }
-void InputManager :: ProcessHeld() {
+void InputManager::ProcessHeld() {
 	for (int i = 0; i < keyHeld.size(); i++) {
 		keyMap.Action(keyHeld[i], 3, 0);//WARN: held inputs have NO mods for now, which means you need to manually check if ctrl etc.
 	}
@@ -43,6 +44,7 @@ void InputManager::UpdateCursorPos(GLFWwindow* window) {
 	glfwGetCursorPos(window, &x, &y);
 	cursorX = x;
 	cursorY = y;
+
 } 
 void InputManager::SetCursorPos(float x, float y) {
 	cursorXold = cursorX.load();
@@ -50,6 +52,8 @@ void InputManager::SetCursorPos(float x, float y) {
 	
 	cursorX = x;
 	cursorY = y;
+
+
 }
 
 std::atomic<float> InputManager::cursorX;

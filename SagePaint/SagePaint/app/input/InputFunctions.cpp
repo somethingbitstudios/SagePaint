@@ -2,15 +2,41 @@
 
 #include "../CanvasManager.h"
 #include "../tools/PencilTool.h"
+#include "../tools/ToolManager.h"
+#include "../tools/LineTool.h"
 
 void PointerDown() {
+    switch (ToolManager::tool_type) { //TODO: replace with inline function
+    case TOOL_PENCIL:
+        PencilTool::StrokeStart();
+        break;
+    case TOOL_LINE:
+        LineTool::LineStart();
+        break;
 
+    }
 }
 void Pointer() {
-    PencilTool::Stroke();//replace with switch depending on tool, then call tool or canvas specific function
+    switch (ToolManager::tool_type) {
+    case TOOL_PENCIL:
+        PencilTool::Stroke();
+        break;
+    case TOOL_LINE:
+        LineTool::LinePreview();
+        break;
 
+    }
 }
 void PointerUp() {
+    switch (ToolManager::tool_type) {
+    case TOOL_PENCIL:
+        PencilTool::StrokeEnd();
+        break;
+    case TOOL_LINE:
+        LineTool::LineEnd();
+        break;
+
+    }
 }
 
 void Drag() {//this is ok until it's dragging something outside of the canvas is needed
@@ -34,6 +60,7 @@ void InitInputFunctions() {
     { Drag, "Drag", "does dragging the canvas",  0 },
     { ZoomOut, "ZoomOut", "zooms the canvas out",  0 },
     { ZoomIn, "ZoomIn", "zooms the canvas in",  0 },
+
     //not sure if this will be useful, isntead of switching to tool, you can press button to use... might get removed later TODO remove?
     { PencilTool::Stroke, "PencilTool::Stroke", "Executes the pencil stroke regardless of selected tool",  8 },
     //{ LineTool::LineStart, "LineStart", "Begins a line, regarless of chosen tool",  0 }, //TODO: move to a different file than canvasmanager? Like LineTool.cpp?

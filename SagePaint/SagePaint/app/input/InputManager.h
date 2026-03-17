@@ -29,7 +29,7 @@ public:
 	static void ProcessHeld();
 	static void SetContext(Key_Context_Enum keyContext);
 	static inline glm::vec2 GetCursorPos() { return glm::vec2 { cursorX.load(), cursorY.load()}; }
-	static inline glm::vec2 GetCursorPosDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
+	static inline glm::vec2 GetCursorDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
 
 	static inline float GetCursorX() { return cursorX; }
 	static inline float GetCursorXDelta() { return cursorX-cursorXold; }
