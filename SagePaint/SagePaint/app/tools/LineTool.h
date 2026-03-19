@@ -5,8 +5,8 @@ class LineTool {
 public:
 	static void LineStart();
 	static void LinePreview();
+	static void LineRender(unsigned char* texture, int tex_w, int tex_h, int x0, int y0, int x1, int y1, int width);
 	static void LineEnd();
 private:
-	static void LineRender();
 	static glm::ivec2 downPos;
 };
