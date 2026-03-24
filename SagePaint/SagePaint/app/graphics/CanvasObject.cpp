@@ -69,8 +69,13 @@ void CanvasObject::SwapLayerUp(int index) {
 			selectedLayer++;
 		else if (index + 1 == selectedLayer)
 			selectedLayer--;
+
+		model->selected_layer = selectedLayer;
+		model->SwapLayerUp(index);
+		//Changed();
 	}
-	Changed();//TODO:remove, only debug?
+
+	//Changed();//TODO:remove, only debug?
 	}
 
 void CanvasObject::SwapLayerDown(int index) {
@@ -84,7 +89,11 @@ void CanvasObject::SwapLayerDown(int index) {
 		else if (index - 1 == selectedLayer)
 			selectedLayer++;
 
+
+		model->selected_layer = selectedLayer;
+		model->SwapLayerDown(index);
+		//Changed();
 	}
 
-	Changed();//TODO: -||-
+	//Changed();//TODO: -||-
 }

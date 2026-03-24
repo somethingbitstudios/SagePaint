@@ -281,8 +281,12 @@ void MainApp() {
 				ImGui::Text("*"); ImGui::SameLine();
 			}
 			if (ImGui::Button(("Layer " + std::to_string(i) + ":").c_str()))
+			{
 				CanvasManager::obj->selectedLayer = i;
+				CanvasManager::obj->model->selected_layer = i;//TODO: wrap
 
+			}
+			
 			ImGui::SameLine();
 			if (ImGui::Button("Visible"))
 			{

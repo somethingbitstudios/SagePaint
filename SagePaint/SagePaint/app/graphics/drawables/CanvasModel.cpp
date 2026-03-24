@@ -27,6 +27,21 @@ void CanvasModel::Changed() {
 	//SetImage(image);
 	SendLayerToGpu(selected_layer);
 }
+void CanvasModel::SwapLayerUp(int index) {
+	//SetImage(image);
+	GLuint temp = textures[index+1];
+	textures[index + 1] = textures[index];
+	textures[index] = temp;
+	//SendLayerToGpu(selected_layer);
+}
+void CanvasModel::SwapLayerDown(int index) {
+	//SetImage(image);
+	GLuint temp = textures[index - 1];
+	textures[index - 1] = textures[index];
+	textures[index] = temp;
+	//SendLayerToGpu(index);
+}
+
 void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	//DLOG(fmod(zoom,1.f))
 	if (
@@ -51,6 +66,7 @@ void CanvasModel::SetLayerVector(std::shared_ptr<std::vector<ImagePtr>> v) {
 	for (int i = 0; i < layers->size(); i++) {
 		InitLayer();
 	}
+	
 }
 void CanvasModel::InitLayer(){
 
@@ -76,6 +92,7 @@ void CanvasModel::InitLayer(){
 	//TODO: make this not like that this is bad because it means the grid depends on last added layer
 	scale_inverse_aspect_ratio = (*layers)[index]->height / (float)(*layers)[index]->width;
 	scale_width = (*layers)[index]->width;
+	//SendLayerToGpu(index);
 }
 
 void CanvasModel::SendLayerToGpu(int index) {

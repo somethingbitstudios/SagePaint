@@ -31,6 +31,9 @@ public:
 	void SendLayerToGpu(int index);
 	void SendLayersToGpu();
 	
+	void SwapLayerUp(int index);
+	void SwapLayerDown(int index);
+
 	void SetZoom(float zoom, float forceNearestThreshold); //this will update the filtering 
 	void Changed()override;
 	ImagePtr image;//deprecate?
