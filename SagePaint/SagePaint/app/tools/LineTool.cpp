@@ -13,7 +13,9 @@ void LineTool::LineStart() {
 void LineTool::LineEnd() {
 	//LineRender to the actual canvas
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
-	LineRender(CanvasManager::obj->image->texture, CanvasManager::obj->image->width, CanvasManager::obj->image->height, downPos.x, downPos.y, upPos.x, upPos.y,1);
+
+	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer];//WARN:hardcoded!
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,1);
 	CanvasManager::obj->Changed();
 }
 void LineTool::LinePreview() {

@@ -1,29 +1,6 @@
 #include "CanvasModel.h"
 #include "../../CanvasManager.h"
 
-/* this shader set uses time and position in fragment, the position might not be optimal because 2x MVP * vec4 is not needed
-static const char* vertex_shader_text =
-"#version 330\n"
-"uniform mat4 MVP;\n"
-//"uniform float time;\n" //not needed if time is only needed in the fragment shader
-"in vec3 vPos;\n"
-"out vec4 pospos;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 1.0);\n"
-"	 pospos = MVP*vec4(vPos,1.0);\n"
-"}\n";
-
-static const char* fragment_shader_text =
-"#version 330\n"
-"uniform float time;\n"
-"out vec4 fragment;\n"
-"in vec4 pospos;\n"
-"void main()\n"
-"{\n"
-"    fragment = vec4(abs(sin(time+pospos.x)),abs(cos(time+pospos.y)),abs(cos(-time-(100.0*pospos.x))), 1.0);\n"
-"}\n";
-*/
 
 
 static std::string vertex_shader_text;
@@ -35,6 +12,7 @@ static GLuint program;
 static GLuint vertex_array;
 static GLuint vertex_buffer;
 static GLuint mvp_location;
+static GLint texLoc;
 
 static GLuint scale_location;
 static float scale_width;
@@ -42,11 +20,12 @@ static float scale_inverse_aspect_ratio;
 //static GLuint time_location;
 static GLuint index_buffer;
 static GLuint uv_buffer;
+static std::vector<GLuint> textures;
 static GLuint texture;
 
-
 void CanvasModel::Changed() {
-	SetImage(image);
+	//SetImage(image);
+	SendLayerToGpu(selected_layer);
 }
 void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	//DLOG(fmod(zoom,1.f))
@@ -54,7 +33,7 @@ void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 		zoom >= forceNearestThreshold ||
 		fmod(zoom,1.0f)<0.001f //integer scaling
 		
-		) {
+		) {//TODO:fix
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
@@ -64,6 +43,54 @@ void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 		//prevents texture bleeding to its other side
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+}
+
+void CanvasModel::SetLayerVector(std::shared_ptr<std::vector<ImagePtr>> v) {
+	layers = v;
+	for (int i = 0; i < layers->size(); i++) {
+		InitLayer();
+	}
+}
+void CanvasModel::InitLayer(){
+
+	textures.push_back((GLuint)0);
+	int index = textures.size() - 1;
+
+
+	glGenTextures(1, &textures[index]);
+	glBindTexture(GL_TEXTURE_2D, textures[index]);
+
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//send to gpu
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (*layers)[index]->width, (*layers)[index]->height, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, (*layers)[index]->texture);
+	
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//TODO: make this not like that this is bad because it means the grid depends on last added layer
+	scale_inverse_aspect_ratio = (*layers)[index]->height / (float)(*layers)[index]->width;
+	scale_width = (*layers)[index]->width;
+}
+
+void CanvasModel::SendLayerToGpu(int index) {
+	ImagePtr i = (*layers)[index];
+	glBindTexture(GL_TEXTURE_2D, textures[index]);
+	
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+		(*layers)[index]->width, (*layers)[index]->height,
+		GL_RGBA, GL_UNSIGNED_BYTE, (*layers)[index]->texture);
+	
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+void CanvasModel::SendLayersToGpu() {
+	for (int i = 0; i < layers->size(); i++) {
+		SendLayerToGpu(i);
 	}
 }
 
@@ -109,6 +136,7 @@ CanvasModel::~CanvasModel() {
 	}
 }
 CanvasModel::CanvasModel() :Model() {
+	
 	if (instance_count++==0) {
 		glGenBuffers(1, &vertex_buffer);
 		glGenBuffers(1, &index_buffer);
@@ -177,6 +205,7 @@ CanvasModel::CanvasModel() :Model() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
+		
 
 		
 
@@ -197,21 +226,38 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	Model::Draw(m, p);//NEEDED?
+
 	glm::mat4 mvp;
 
 
+
+
 	mvp = p * m;
+
 	glUseProgram(program);
 
+	//i have "layers" (usage: layers[0]->texture gives bitmap, ->width etc)
+	//i have textures (std::vector<GLuint>) that layers are bound to
+	//draw all of the layers on top of each other here
+
+	//glDisable(GL_DEPTH_TEST);
+
+
 	glEnable(GL_BLEND);
+	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glActiveTexture(GL_TEXTURE0);   
-	glBindTexture(GL_TEXTURE_2D, texture);
+	//glBindTexture(GL_TEXTURE_2D, texture);
+
+
+	texLoc = glGetUniformLocation(program, "tex");
 
 	//send uniform to shader
-	GLint texLoc = glGetUniformLocation(program, "tex");
 	glUniform1i(texLoc, 0);
+
+	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
+
 
 	//GLint texSizeLoc = glGetUniformLocation(program, "texSize");
 	//glUniform2f(texSizeLoc, (float)image->width, (float)image->height);
@@ -224,14 +270,16 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 
 
 
-	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
-
-
+	
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
 
 	//float time_ms = (float)(glfwGetTime());
 	//glUniform1f(time_location, time_ms);
 
 	glBindVertexArray(vertex_array);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	for (size_t i = 0; i < (*layers).size(); i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	}
 }

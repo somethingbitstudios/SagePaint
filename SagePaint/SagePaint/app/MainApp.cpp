@@ -100,7 +100,9 @@ void MainApp() {
 		std::make_shared<Image>("C:\\temp\\miku.png")
 	};
 
+	go->LoadImageSync(std::make_shared<Image>(640, 400));
 	go->LoadImageSync(images[0]);
+	
 	//put this into a call you'll do as part of canvasManager
 
 	//TODO: put into a function
@@ -271,8 +273,40 @@ void MainApp() {
 		ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
 		ImGui::Text(("Y: " + std::to_string(go->pos.y)).c_str());
 
-		if (ImGui::Button("Press"))
-			DLOG("OK")
+
+		ImGui::Text("Layers:");
+		for (int i = CanvasManager::obj->layers->size()-1; i >=0; i--) {
+			ImGui::PushID(i);
+			if (CanvasManager::obj->selectedLayer == i) {
+				ImGui::Text("*"); ImGui::SameLine();
+			}
+			if (ImGui::Button(("Layer " + std::to_string(i) + ":").c_str()))
+				CanvasManager::obj->selectedLayer = i;
+
+			ImGui::SameLine();
+			if (ImGui::Button("Visible"))
+			{
+				DLOG("unvisiblie")
+
+			}
+				
+			ImGui::SameLine();
+
+			if (ImGui::Button("Up"))
+			{
+				CanvasManager::obj->SwapLayerUp(i);
+			}
+				
+			ImGui::SameLine();
+			if (ImGui::Button("Down")) {
+				CanvasManager::obj->SwapLayerDown(i);
+
+			}
+				
+			ImGui::PopID();
+		}
+		
+
 		ImGui::End();
 
 		if (ImGui::BeginMainMenuBar())

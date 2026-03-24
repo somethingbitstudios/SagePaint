@@ -11,20 +11,31 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <vector>
 #include <glm/gtc/type_ptr.hpp>
 #include "../Common.h"
 #include "./Model.h"
 #include "../../file/Image.h"
+
 //a test class for separating rendering into an object
 class CanvasModel : public Model {
 public:
 	void Draw(glm::mat4 m, glm::mat4 p) override;
 	CanvasModel();
 	~CanvasModel();
-	void SetImage(ImagePtr i);
+	void SetImage(ImagePtr i);//deprecated
+
+	void SetLayerVector(std::shared_ptr<std::vector<ImagePtr>> v);
+	void InitLayer();
+
+	void SendLayerToGpu(int index);
+	void SendLayersToGpu();
+	
 	void SetZoom(float zoom, float forceNearestThreshold); //this will update the filtering 
 	void Changed()override;
-	ImagePtr image;
+	ImagePtr image;//deprecate?
+	std::shared_ptr<std::vector<ImagePtr>> layers;
+	unsigned int selected_layer;
 };
 
 typedef std::shared_ptr<CanvasModel> CanvasModelPtr;

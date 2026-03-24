@@ -9,7 +9,8 @@ void main()
 {
 //TODO: add ability to switch to fragment that doesn't draw the grid
     vec4 texel = texture(tex, TexCoord);
-
+    fragment = texel;
+    return;
     // Grid scale (number of cells)
     float scaleX = texSize.x;
     float aspectRatio =  texSize.y;
@@ -22,6 +23,6 @@ void main()
 
     vec3 background = mix(vec3(0.975), vec3(0.8), checker);
   
-  fragment = vec4(texel.rgb + background * (1.0 - texel.a), 1.0); //basic blending
+  fragment = vec4(texel.rgb + background * (1.0 - texel.a), 1.0); 
 
 }

@@ -18,7 +18,7 @@ void CanvasManager::Init() {
 	obj->SetZoom(zoom, scalingNonIntUseLinearThreshold);
 	obj->pos.x = Screen_width / 2;//obj->image->width/2 * zoom;
 	obj->pos.y = Screen_height / 2;//obj->image->height/2 * zoom;
-
+	
 
 }
 CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }

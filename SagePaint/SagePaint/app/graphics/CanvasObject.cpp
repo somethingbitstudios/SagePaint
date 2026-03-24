@@ -2,10 +2,18 @@
 #include "shortcuts.h"
 
 CanvasObject::CanvasObject() :GameObject() {
+	layers = std::make_shared<std::vector<ImagePtr>>();
 	//initialize canvas
-	image = std::make_shared<Image>(640,360);//WARN: might be extra and not needed!
+	//image = std::make_shared<Image>(640,360);//WARN: might be extra and not needed!
+	//image->texture[0] = 255;
+	//image->texture[1] = 0;
+	//image->texture[2] = 0;
+	//image->texture[3] = 255;
+
+	//layers.push_back(image);
 	model = std::make_shared<CanvasModel>();
-	model->SetImage(image);
+	//model->SetImage(image);
+	model->SetLayerVector(layers);
 	//scast(CanvasModel, model)->SetImage(image); alternative
 }
 void CanvasObject::LoadImageSync(std::string path) {
@@ -15,7 +23,11 @@ void CanvasObject::LoadImageSync(std::string path) {
 }
 void CanvasObject::LoadImageSync(ImagePtr i) {
 	image = i;
-	model->SetImage(i);
+	layers->push_back(image);
+	selectedLayer = layers->size()-1;
+	//model->SetImage(i);
+	model->selected_layer = selectedLayer;
+	model->InitLayer();
 	//scast(CanvasModel, model)->SetImage(i);//alert canvas that image changed
 }
 
@@ -45,4 +57,34 @@ void CanvasObject::SetZoom(float zoom,float forceNearestThreshold) {
 	scale.x = (float)image->width * zoom;
 	scale.y = (float)image->height * zoom;
 	model->SetZoom(zoom,forceNearestThreshold);
+}
+
+void CanvasObject::SwapLayerUp(int index) {
+	if (index >= 0 && index < layers->size()-1) {
+		ImagePtr temp = (*layers)[index+1];
+		(*layers)[index+1] = (*layers)[index];
+		(*layers)[index] = temp;
+
+		if (index == selectedLayer)
+			selectedLayer++;
+		else if (index + 1 == selectedLayer)
+			selectedLayer--;
+	}
+	Changed();//TODO:remove, only debug?
+	}
+
+void CanvasObject::SwapLayerDown(int index) {
+	if (index > 0 && index < layers->size() ) {
+		ImagePtr temp = (*layers)[index-1];
+		(*layers)[index-1] = (*layers)[index];
+		(*layers)[index] = temp;
+
+		if (index == selectedLayer)
+			selectedLayer--;
+		else if (index - 1 == selectedLayer)
+			selectedLayer++;
+
+	}
+
+	Changed();//TODO: -||-
 }

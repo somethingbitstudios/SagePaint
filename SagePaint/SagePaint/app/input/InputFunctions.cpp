@@ -14,7 +14,7 @@ void PointerDown() {
         LineTool::LineStart();
         break;
 
-    }
+    } 
 }
 void Pointer() {
     switch (ToolManager::tool_type) {
