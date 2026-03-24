@@ -50,7 +50,7 @@ void InputManager::SetCursorPos(float x, float y) {
 	cursorXold = cursorX.load();
 	cursorYold = cursorY.load();
 	
-	cursorX = x;
+	cursorX = x; 
 	cursorY = y;
 
 

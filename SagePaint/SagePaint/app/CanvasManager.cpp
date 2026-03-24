@@ -10,9 +10,9 @@ float CanvasManager::zoomRateMultiplicative = MY_SQRT_2;
 
 float CanvasManager::scalingNonIntUseLinearThreshold = 2;
 
-float CanvasManager::color[4] = {0.0f,0.0f,0.0f,1.0f};
-
+float CanvasManager::color[4] = { 0.0f,0.0f,0.0f,1.0f };
 glm::ivec2 CanvasManager::relativeCursorPos = { 0,0 };
+
 
 void CanvasManager::Init() {
 	obj->SetZoom(zoom, scalingNonIntUseLinearThreshold);

@@ -17,10 +17,10 @@ void LineTool::LineEnd() {
 	CanvasManager::obj->Changed();
 }
 void LineTool::LinePreview() {
-	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
+	/*glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 	LineRender(CanvasManager::obj->image->texture, CanvasManager::obj->image->width, CanvasManager::obj->image->height, downPos.x, downPos.y, upPos.x, upPos.y, 1);
 	CanvasManager::obj->Changed();
-
+	*/
 	//LineRender to preview canvas
 }
 
@@ -52,21 +52,21 @@ void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, in
 		
 		if (y_s >= tex_h)return;//TODO: replace this out of bounds check
 		if (y_s + ady < 0)return;
-		ady = std::min(ady, tex_h - y_s);//clamp to bounds, this will not work for width of line > 1
+		ady = std::min(ady, tex_h - y_s - 1);//clamp to bounds, this will not work for width of line > 1
 		if (y_s < 0) {
 			offset = -y_s;
 
 		}
 		for (int i = offset; i <= ady; i++) {
 			int x = round(x_s + (i * dx_divide_dy));
-			if (x<0 || x>tex_w)continue;//TODO: replace this out of bounds check
+			if (x<0 || x>=tex_w)continue;//TODO: replace this out of bounds check
 			unsigned char* img = &texture[(x + (y_s + i) * tex_w) * 4];
 			img[0] = color[0];
 			img[1] = color[1];
 			img[2] = color[2];
 			img[3] = color[3];
 		}
-	}
+	} 
 	else {
 		
 		if (dx >= 0) {
@@ -81,14 +81,14 @@ void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, in
 
 		if (x_s >= tex_w )return;//TODO: replace this out of bounds check
 		if (x_s + adx < 0)return;
-		adx = std::min(adx, tex_w - x_s);//clamp to bounds, this will not work for width of line > 1
+		adx = std::min(adx, tex_w - x_s - 1);//clamp to bounds, this will not work for width of line > 1
 		if (x_s < 0) {
 			offset = -x_s;
 
 		}
 		for (int i = offset; i <= adx; i++) {
 			int y = round(y_s + (i * dy_divide_dx));
-			if (y<0 || y>tex_h)continue;
+			if (y<0 || y>=tex_h)continue;
 			unsigned char* img = &texture[(x_s + i + (y * tex_w)) * 4];
 			img[0] = color[0];
 			img[1] = color[1];

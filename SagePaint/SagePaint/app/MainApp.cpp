@@ -36,7 +36,7 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 	//InputManager::SetCursorPos(xpos, ypos); TODO: USE AFTER IMPLEMENTING POSITIONBUFFER
 }
 
-float backgroundColor[4] = { 0.3f,0.08f,0.3f,1 };//TODO: move to some appstorage class
+float backgroundColor[4] = { 0.1f,0.05f,0.1f,1 };//TODO: move to some appstorage class
 
 void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
@@ -253,7 +253,9 @@ void MainApp() {
 			ToolManager::SetTool(TOOL_PENCIL);
 		if (ImGui::Button("Line"))
 			ToolManager::SetTool(TOOL_LINE);
-		
+		if (ImGui::Button("Shape"))
+			ToolManager::SetTool(TOOL_SHAPE);
+
 		ImGui::End();
 
 

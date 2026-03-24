@@ -35,6 +35,10 @@ static GLuint program;
 static GLuint vertex_array;
 static GLuint vertex_buffer;
 static GLuint mvp_location;
+
+static GLuint scale_location;
+static float scale_width;
+static float scale_inverse_aspect_ratio;
 //static GLuint time_location;
 static GLuint index_buffer;
 static GLuint uv_buffer;
@@ -57,6 +61,9 @@ void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//GL_LINEAR
+		//prevents texture bleeding to its other side
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 }
 
@@ -81,6 +88,11 @@ void CanvasModel::SetImage(ImagePtr i) {
 			GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
 	}
 	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//change background grid
+	scale_inverse_aspect_ratio = image->height / (float)image->width;
+	scale_width = image->width;
+	
 }
 
 CanvasModel::~CanvasModel() {
@@ -126,6 +138,7 @@ CanvasModel::CanvasModel() :Model() {
 		glDeleteShader(fragment_shader);
 
 		mvp_location = glGetUniformLocation(program, "MVP");
+		scale_location = glGetUniformLocation(program, "texSize");
 		//time_location = glGetUniformLocation(program, "time");
 
 		const GLint vpos_location = glGetAttribLocation(program, "vPos");
@@ -207,6 +220,13 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 
 
 	//consider using 'Uniform buffer objects'(?idk, meh) if there are too many uniforms
+	
+
+
+
+	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
+
+
 	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
 
 	//float time_ms = (float)(glfwGetTime());

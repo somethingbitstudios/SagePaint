@@ -11,7 +11,12 @@ public:
 	void Changed();
 	void SetZoom(float zoom, float forceNearestThreshold);
 	CanvasModelPtr model;
+
+
+	//TODO: maintain layers here (?), then send as a & reference parameter to model
+	//TODO: Make a Layer class with bool visible, blend type etc.
 	ImagePtr image;
+
 	void Draw() override;
 	int GetType() const override { return 1; }
 };
