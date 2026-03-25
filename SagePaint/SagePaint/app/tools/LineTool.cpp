@@ -15,6 +15,7 @@ void LineTool::LineEnd() {
 	//LineRender to the actual canvas
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
+	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
 	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
 	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,1);
 	CanvasManager::obj->Changed();

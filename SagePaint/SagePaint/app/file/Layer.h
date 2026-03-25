@@ -20,7 +20,7 @@ public:
 	BLEND_Type blend;
 
 	GLuint textureId;
-
+	void Init();
 	Layer();
 	Layer(ImagePtr i);
 	~Layer();

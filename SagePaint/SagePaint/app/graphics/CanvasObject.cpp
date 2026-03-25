@@ -27,7 +27,7 @@ void CanvasObject::LoadImageSync(ImagePtr i) {
 	selectedLayer = layers->size()-1;
 	//model->SetImage(i);
 	model->selected_layer = selectedLayer;
-	model->InitLayer();
+	model->InitLayer(layers->size()-1);
 	//scast(CanvasModel, model)->SetImage(i);//alert canvas that image changed
 }
 
@@ -71,7 +71,7 @@ void CanvasObject::SwapLayerUp(int index) {
 			selectedLayer--;
 
 		model->selected_layer = selectedLayer;
-		model->SwapLayerUp(index);
+		//model->SwapLayerUp(index);
 		//Changed();
 	}
 
@@ -91,9 +91,40 @@ void CanvasObject::SwapLayerDown(int index) {
 
 
 		model->selected_layer = selectedLayer;
-		model->SwapLayerDown(index);
+		//model->SwapLayerDown(index);
 		//Changed();
 	}
 
 	//Changed();//TODO: -||-
+}
+
+void CanvasObject::ToggleVisible(int index) {//TODO: add check to all index based functions
+	(*layers)[index]->visible = !(*layers)[index]->visible;
+}
+void CanvasObject::Remove(int index) {
+	//TODO: don't immediately remove, keep for potential undos!
+	
+	
+	//selectedLayer adjust a) before index -> ignore b)index c)after index
+	if (selectedLayer >= index ) {
+		if (selectedLayer == 0) {
+			if ((*layers).size() <= 1) {// deleting last layer
+				selectedLayer = -1;
+				model->selected_layer = -1;
+			}//else not last layer, problem will solve itself
+		
+		}
+		else {
+			selectedLayer--;
+			model->selected_layer = selectedLayer;
+		}
+	}
+	//model notify
+	model->Discard(index);
+	//layers remove
+	(*layers).erase((*layers).begin() + index);
+	//(*layers)[index]->visible = !(*layers)[index]->visible;
+}
+void CanvasObject::AddLayer() {
+	LoadImageSync(std::make_shared<Image>(640, 400));
 }

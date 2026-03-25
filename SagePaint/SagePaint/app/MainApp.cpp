@@ -277,10 +277,8 @@ void MainApp() {
 		ImGui::Text("Layers:");
 		for (int i = CanvasManager::obj->layers->size()-1; i >=0; i--) {
 			ImGui::PushID(i);
-			if (CanvasManager::obj->selectedLayer == i) {
-				ImGui::Text("*"); ImGui::SameLine();
-			}
-			if (ImGui::Button(("Layer " + std::to_string(i) + ":").c_str()))
+			
+			if (ImGui::Button((*CanvasManager::obj->layers)[i]->name.c_str()))
 			{
 				CanvasManager::obj->selectedLayer = i;
 				CanvasManager::obj->model->selected_layer = i;//TODO: wrap
@@ -288,11 +286,20 @@ void MainApp() {
 			}
 			
 			ImGui::SameLine();
-			if (ImGui::Button("Visible"))
+
+			if (ImGui::Button("Vis"))
 			{
-				DLOG("unvisiblie")
+				CanvasManager::obj->ToggleVisible(i);
 
 			}
+			ImGui::SameLine();
+			if (ImGui::Button("X")) {
+				//TODO: schedule instead of the break hotfix
+				CanvasManager::obj->Remove(i);
+				ImGui::PopID();
+				break;
+			}
+
 				
 			ImGui::SameLine();
 
@@ -302,14 +309,28 @@ void MainApp() {
 			}
 				
 			ImGui::SameLine();
+
 			if (ImGui::Button("Down")) {
 				CanvasManager::obj->SwapLayerDown(i);
 
 			}
-				
+
+
+			if (CanvasManager::obj->selectedLayer == i) {
+
+				ImGui::SameLine(); ImGui::Text("*");
+			}
+
+			if (ImGui::InputFloat("", &(*CanvasManager::obj->layers)[i]->opacity))
+			{
+				(*CanvasManager::obj->layers)[i]->opacity = max(0.0f, min(1.0f, (*CanvasManager::obj->layers)[i]->opacity));
+
+			}
 			ImGui::PopID();
 		}
-		
+		if (ImGui::Button("New Layer")) {
+			CanvasManager::obj->AddLayer();
+		}
 
 		ImGui::End();
 

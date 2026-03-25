@@ -20,28 +20,29 @@ static float scale_inverse_aspect_ratio;
 //static GLuint time_location;
 static GLuint index_buffer;
 static GLuint uv_buffer;
-static std::vector<GLuint> textures;
+//static std::vector<GLuint> textures;
 static GLuint texture;
 
 void CanvasModel::Changed() {
 	//SetImage(image);
 	SendLayerToGpu(selected_layer);
 }
+/*
 void CanvasModel::SwapLayerUp(int index) {
 	//SetImage(image);
-	GLuint temp = textures[index+1];
-	textures[index + 1] = textures[index];
-	textures[index] = temp;
+	GLuint temp = (*layers)[index+1]->textureId;
+	(*layers)[index + 1]->textureId = (*layers)[index]->textureId;
+	(*layers)[index]->textureId = temp;
 	//SendLayerToGpu(selected_layer);
 }
 void CanvasModel::SwapLayerDown(int index) {
 	//SetImage(image);
-	GLuint temp = textures[index - 1];
-	textures[index - 1] = textures[index];
-	textures[index] = temp;
+	GLuint temp = (*layers)[index - 1]->textureId;
+	(*layers)[index - 1]->textureId = (*layers)[index]->textureId;
+	(*layers)[index]->textureId = temp;
 	//SendLayerToGpu(index);
 }
-
+*/
 void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	//DLOG(fmod(zoom,1.f))
 	if (
@@ -64,18 +65,18 @@ void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 void CanvasModel::SetLayerVector(std::shared_ptr<std::vector<LayerPtr>> v) {
 	layers = v;
 	for (int i = 0; i < layers->size(); i++) {
-		InitLayer();
+		InitLayer(i);
 	}
 	
 }
-void CanvasModel::InitLayer(){
+void CanvasModel::InitLayer(int index){
 
-	textures.push_back((GLuint)0);
-	int index = textures.size() - 1;
+	//textures.push_back((GLuint)0);
+	//int index = (*layers).size() - 1;
 
 
-	glGenTextures(1, &textures[index]);
-	glBindTexture(GL_TEXTURE_2D, textures[index]);
+	glGenTextures(1, &(*layers)[index]->textureId);
+	glBindTexture(GL_TEXTURE_2D, (*layers)[index]->textureId);
 
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -94,10 +95,16 @@ void CanvasModel::InitLayer(){
 	scale_width = (*layers)[index]->image->width;
 	//SendLayerToGpu(index);
 }
+void CanvasModel::Discard(int index) {
+	if ((*layers)[index]->textureId != 0) {
+		glDeleteTextures(1, &(*layers)[index]->textureId);
 
+		(*layers)[index]->textureId = 0;//needed?
+	}
+}
 void CanvasModel::SendLayerToGpu(int index) {
 	ImagePtr i = (*layers)[index]->image;
-	glBindTexture(GL_TEXTURE_2D, textures[index]);
+	glBindTexture(GL_TEXTURE_2D, (*layers)[index]->textureId);
 	
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
 		i->width, i->height,
@@ -270,6 +277,8 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 
 	texLoc = glGetUniformLocation(program, "tex");
 
+	GLuint opacityLoc = glGetUniformLocation(program, "opacity"); 
+
 	//send uniform to shader
 	glUniform1i(texLoc, 0);
 
@@ -296,7 +305,13 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	glBindVertexArray(vertex_array);
 	for (size_t i = 0; i < (*layers).size(); i++)
 	{
-		glBindTexture(GL_TEXTURE_2D, textures[i]);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//TODO send opacity to layer if visible
+		if ((*layers)[i]->visible) {
+			glBindTexture(GL_TEXTURE_2D, (*layers)[i]->textureId);
+			glUniform1f(opacityLoc, (*layers)[i]->opacity);
+
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		}
 	}
 }

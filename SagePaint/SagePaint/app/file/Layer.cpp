@@ -2,8 +2,9 @@
 
 unsigned int Layer::layerCount = 0;
 
-Layer::Layer() {
-	name = "Layer" + layerCount++;
+void Layer::Init() {
+
+	name = "Layer " + std::to_string(++layerCount);
 	visible = true;
 	opacity = 1.0f;
 	blend = BLEND_Normal;
@@ -12,12 +13,11 @@ Layer::Layer() {
 Layer::~Layer() {
 
 }
+Layer::Layer() {
+	Init();
+}
 Layer::Layer(ImagePtr i) {
-	name = "Layer" + layerCount++;
-	visible = true;
-	opacity = 1.0f;
-	blend = BLEND_Normal;
-	textureId = 0;
+	Init();
 	SetImage(i);//in case processing needs to happen, funnel all to SetImage
 }
 void Layer::SetImage(ImagePtr i) {

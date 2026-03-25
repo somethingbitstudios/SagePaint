@@ -16,7 +16,7 @@ void PencilTool::Stroke() {
 	int start_x = rel.x - radius; int end_x = rel.x + radius;
 	int start_y = rel.y - radius; int end_y = rel.y + radius;
 	//don't draw if it's not even on the canvas
-
+	if (obj->selectedLayer == -1)return;//TODO: no layer alert
 	ImagePtr image = (*obj->layers)[obj->selectedLayer]->image;//WARN:hardcoded!
 
 	if (end_x < 0 || end_y < 0 || start_x >= image->width || start_y >= image->height) {

@@ -25,6 +25,11 @@ public:
 	//TODO: Make a Layer class with bool visible, blend type etc.
 	void SwapLayerUp(int index);
 	void SwapLayerDown(int index);
+	
+	void ToggleVisible(int index);
+	void Remove(int index);
+
+	void AddLayer();
 
 	std::shared_ptr<std::vector<LayerPtr>> layers;
 	unsigned int selectedLayer;
