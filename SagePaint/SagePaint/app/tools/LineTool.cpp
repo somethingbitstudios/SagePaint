@@ -1,5 +1,6 @@
 #include "LineTool.h"
 #include "../CanvasManager.h"
+#include "../file/Layer.h"
 #include <glm/ext/vector_int2.hpp>
 #include <algorithm>
 glm::ivec2 LineTool::downPos = { 0,0 };
@@ -14,7 +15,7 @@ void LineTool::LineEnd() {
 	//LineRender to the actual canvas
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
-	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer];//WARN:hardcoded!
+	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
 	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,1);
 	CanvasManager::obj->Changed();
 }

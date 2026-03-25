@@ -1,4 +1,5 @@
 #pragma once
+
 class PencilTool {
 public:
 	static void Stroke();

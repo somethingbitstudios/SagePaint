@@ -61,7 +61,7 @@ void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	}
 }
 
-void CanvasModel::SetLayerVector(std::shared_ptr<std::vector<ImagePtr>> v) {
+void CanvasModel::SetLayerVector(std::shared_ptr<std::vector<LayerPtr>> v) {
 	layers = v;
 	for (int i = 0; i < layers->size(); i++) {
 		InitLayer();
@@ -84,24 +84,24 @@ void CanvasModel::InitLayer(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	//send to gpu
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (*layers)[index]->width, (*layers)[index]->height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, (*layers)[index]->texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (*layers)[index]->image->width, (*layers)[index]->image->height, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, (*layers)[index]->image->texture);
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	//TODO: make this not like that this is bad because it means the grid depends on last added layer
-	scale_inverse_aspect_ratio = (*layers)[index]->height / (float)(*layers)[index]->width;
-	scale_width = (*layers)[index]->width;
+	scale_inverse_aspect_ratio = (*layers)[index]->image->height / (float)(*layers)[index]->image->width;
+	scale_width = (*layers)[index]->image->width;
 	//SendLayerToGpu(index);
 }
 
 void CanvasModel::SendLayerToGpu(int index) {
-	ImagePtr i = (*layers)[index];
+	ImagePtr i = (*layers)[index]->image;
 	glBindTexture(GL_TEXTURE_2D, textures[index]);
 	
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-		(*layers)[index]->width, (*layers)[index]->height,
-		GL_RGBA, GL_UNSIGNED_BYTE, (*layers)[index]->texture);
+		i->width, i->height,
+		GL_RGBA, GL_UNSIGNED_BYTE, i->texture);
 	
 	glGenerateMipmap(GL_TEXTURE_2D);
 }

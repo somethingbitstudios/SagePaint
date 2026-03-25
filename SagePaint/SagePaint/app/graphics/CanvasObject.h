@@ -3,10 +3,12 @@
 #include "./drawables/CanvasModel.h"
 #include "../file/Image.h"
 #include <vector>
+#include "../file/Layer.h"
+
 class CanvasObject : public GameObject {
 public:
 	void Draw() override;
-	int GetType() const override { return CANVAS; }
+	int GetType() const override { return GO_CANVAS; }
 
 	CanvasObject();
 	~CanvasObject();
@@ -24,7 +26,7 @@ public:
 	void SwapLayerUp(int index);
 	void SwapLayerDown(int index);
 
-	std::shared_ptr<std::vector<ImagePtr>> layers;
+	std::shared_ptr<std::vector<LayerPtr>> layers;
 	unsigned int selectedLayer;
 };
 typedef std::shared_ptr<CanvasObject> CanvasObjectPtr;

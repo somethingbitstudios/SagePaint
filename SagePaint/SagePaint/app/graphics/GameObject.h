@@ -14,8 +14,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "./drawables/Model.h"  
 enum GO_Type {
-	DEFAULT,
-	CANVAS
+	GO_DEFAULT,
+	GO_CANVAS
 };
 
 class GameObject {
@@ -29,6 +29,6 @@ public:
 	virtual ~GameObject();
 
 	virtual void Draw();
-	virtual int GetType() const { return DEFAULT; }
+	virtual int GetType() const { return GO_DEFAULT; }
 };
 typedef std::shared_ptr<GameObject> GameObjectPtr;

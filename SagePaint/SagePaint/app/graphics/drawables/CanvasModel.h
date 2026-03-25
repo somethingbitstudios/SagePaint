@@ -16,7 +16,7 @@
 #include "../Common.h"
 #include "./Model.h"
 #include "../../file/Image.h"
-
+#include "../../file/Layer.h"
 //a test class for separating rendering into an object
 class CanvasModel : public Model {
 public:
@@ -25,7 +25,7 @@ public:
 	~CanvasModel();
 	void SetImage(ImagePtr i);//deprecated
 
-	void SetLayerVector(std::shared_ptr<std::vector<ImagePtr>> v);
+	void SetLayerVector(std::shared_ptr<std::vector<LayerPtr>> v);
 	void InitLayer();
 
 	void SendLayerToGpu(int index);
@@ -37,7 +37,7 @@ public:
 	void SetZoom(float zoom, float forceNearestThreshold); //this will update the filtering 
 	void Changed()override;
 	ImagePtr image;//deprecate?
-	std::shared_ptr<std::vector<ImagePtr>> layers;
+	std::shared_ptr<std::vector<LayerPtr>> layers;
 	unsigned int selected_layer;
 };
 

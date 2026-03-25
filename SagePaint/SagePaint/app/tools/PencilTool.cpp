@@ -1,6 +1,6 @@
 #include "PencilTool.h"
 #include "../CanvasManager.h"
-
+#include "../file/Layer.h"
 
 void PencilTool::Stroke() {
 	
@@ -17,7 +17,7 @@ void PencilTool::Stroke() {
 	int start_y = rel.y - radius; int end_y = rel.y + radius;
 	//don't draw if it's not even on the canvas
 
-	ImagePtr image = (*obj->layers)[obj->selectedLayer];//WARN:hardcoded!
+	ImagePtr image = (*obj->layers)[obj->selectedLayer]->image;//WARN:hardcoded!
 
 	if (end_x < 0 || end_y < 0 || start_x >= image->width || start_y >= image->height) {
 		return;

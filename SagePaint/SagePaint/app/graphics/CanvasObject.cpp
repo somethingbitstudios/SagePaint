@@ -2,7 +2,7 @@
 #include "shortcuts.h"
 
 CanvasObject::CanvasObject() :GameObject() {
-	layers = std::make_shared<std::vector<ImagePtr>>();
+	layers = std::make_shared<std::vector<LayerPtr>>();
 	//initialize canvas
 	//image = std::make_shared<Image>(640,360);//WARN: might be extra and not needed!
 	//image->texture[0] = 255;
@@ -23,7 +23,7 @@ void CanvasObject::LoadImageSync(std::string path) {
 }
 void CanvasObject::LoadImageSync(ImagePtr i) {
 	image = i;
-	layers->push_back(image);
+	layers->push_back(std::make_shared<Layer>(image));
 	selectedLayer = layers->size()-1;
 	//model->SetImage(i);
 	model->selected_layer = selectedLayer;
@@ -61,7 +61,7 @@ void CanvasObject::SetZoom(float zoom,float forceNearestThreshold) {
 
 void CanvasObject::SwapLayerUp(int index) {
 	if (index >= 0 && index < layers->size()-1) {
-		ImagePtr temp = (*layers)[index+1];
+		LayerPtr temp = (*layers)[index+1];
 		(*layers)[index+1] = (*layers)[index];
 		(*layers)[index] = temp;
 
@@ -80,7 +80,7 @@ void CanvasObject::SwapLayerUp(int index) {
 
 void CanvasObject::SwapLayerDown(int index) {
 	if (index > 0 && index < layers->size() ) {
-		ImagePtr temp = (*layers)[index-1];
+		LayerPtr temp = (*layers)[index-1];
 		(*layers)[index-1] = (*layers)[index];
 		(*layers)[index] = temp;
 
