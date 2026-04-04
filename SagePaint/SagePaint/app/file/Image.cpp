@@ -1,6 +1,7 @@
 #include "Image.h"
 
-#define STB_IMAGE_IMPLEMENTATION 
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 int nums = 0;//WARN: debug 
 

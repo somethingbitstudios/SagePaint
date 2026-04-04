@@ -8,6 +8,10 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include "stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 bool ProjectManager::dirty = true;
 std::string ProjectManager::name = "test";
 bool ProjectManager::ShowFileUI()
@@ -174,7 +178,7 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 
 
 	fs::create_directories(targetPath);
-	fs::path dataDir = targetPath / "data";
+	fs::path dataDir = targetPath / "data" / "";
 	fs::create_directories(dataDir);
 
 	fs::path configFile = targetPath / "project.conf";
@@ -211,6 +215,10 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 		out << (int)layer->blend;
 		out << "\n		},";
 		//put .png into data
+		ImagePtr img = layer->image;
+
+		std::string gg = dataDir.string() + std::to_string(layer->id) + ".png";
+		stbi_write_png(gg.c_str(), img->width, img->height, 4, img->texture, img->width * 4);
 	}
 	out << "\n	}";
 
