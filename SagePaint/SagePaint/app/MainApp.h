@@ -27,6 +27,7 @@
 #endif
 #include "CanvasManager.h"
 #include "shortcuts.h"
+#include "ProjectManager.h"
 #include <thread>
 
 void MainApp();

@@ -37,6 +37,8 @@ public:
 	*/
 	void SetZoom(float zoom, float forceNearestThreshold); //this will update the filtering 
 	void Changed()override;
+	void Changed(unsigned int i);
+
 	ImagePtr image;//deprecate?
 	std::shared_ptr<std::vector<LayerPtr>> layers;
 	unsigned int selected_layer;

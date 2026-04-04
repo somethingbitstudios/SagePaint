@@ -4,6 +4,8 @@
 #include <glm/ext/vector_int2.hpp>
 #include <algorithm>
 glm::ivec2 LineTool::downPos = { 0,0 };
+glm::ivec2 lastUpPos = { 0,0 };
+
 void LineTool::LineStart() {
 	downPos = CanvasManager::GetRelativeCursorPos();
 	DLOG("Down pos")
@@ -16,29 +18,57 @@ void LineTool::LineEnd() {
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
 	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
-	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,1);
-	CanvasManager::obj->Changed();
-}
-void LineTool::LinePreview() {
-	/*glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
-	LineRender(CanvasManager::obj->image->texture, CanvasManager::obj->image->width, CanvasManager::obj->image->height, downPos.x, downPos.y, upPos.x, upPos.y, 1);
-	CanvasManager::obj->Changed();
-	*/
-	//LineRender to preview canvas
-}
 
-void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, int y0, int x1, int y1, int width ) {
 	float* color_float = CanvasManager::color;
 	//TODO: support width
-
 	//TODO: optimize
-	int color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
+	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
+	if (color[3] == 0)return;
+	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, CanvasManager::transparent);
+
+	image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,color);
+	CanvasManager::obj->Changed();
+	CanvasManager::obj->Changed(0);
+}
+void LineTool::LinePreview() {
+	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+
+	float* color_float = CanvasManager::color;
+	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
+	if (color[3] == 0)return;
+
+	
+	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
+	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, CanvasManager::transparent);
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y, color);
+
+	
+	CanvasManager::obj->Changed(0);
+	lastUpPos = upPos;
+}
+
+void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, int y0, int x1, int y1, unsigned char color[4]) {
+	
 	float dx = x0 - x1;
 	int adx = abs(dx);
 	float dy = y0 - y1;
 	int ady = abs(dy);
+
+	if (ady == 0 && adx == 0) {
+		if (x0 >= 0 && x0 < tex_w && y0 >= 0 && y0 < tex_h) {
+			unsigned char* img = &texture[(x0 + y0 * tex_w) * 4];
+			img[0] = color[0];
+			img[1] = color[1];
+			img[2] = color[2];
+			img[3] = color[3];
+		}
+		
+		return;
+	}
 	float dy_divide_dx = dy / dx;
 	float dx_divide_dy = dx / dy;
 	int y_s;

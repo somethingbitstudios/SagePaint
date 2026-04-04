@@ -1,5 +1,7 @@
 #include "CanvasManager.h"
 #include "shortcuts.h"
+unsigned char CanvasManager::transparent[4] = { 0,0,0,0 };
+
 CanvasObjectPtr CanvasManager::obj = nullptr;
 
 float CanvasManager::zoom = 1.f;
@@ -12,6 +14,7 @@ float CanvasManager::scalingNonIntUseLinearThreshold = 2;
 
 float CanvasManager::color[4] = { 0.0f,0.0f,0.0f,1.0f };
 glm::ivec2 CanvasManager::relativeCursorPos = { 0,0 };
+glm::ivec2 CanvasManager::lastRelativeCursorPos = { 0,0 };
 
 
 void CanvasManager::Init() {
@@ -32,7 +35,7 @@ void CanvasManager::UpdateRelativeCursorPos() {
 	int rel_x = ((x - obj->pos.x) / zoom + obj->image->width / 2.0f);
 	int rel_y = ((y - obj->pos.y) / zoom + obj->image->height / 2.0f);
 	
-
+	lastRelativeCursorPos = relativeCursorPos;
 	relativeCursorPos = { rel_x,rel_y };
 }
 

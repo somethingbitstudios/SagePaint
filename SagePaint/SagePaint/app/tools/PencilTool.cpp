@@ -1,20 +1,33 @@
 #include "PencilTool.h"
 #include "../CanvasManager.h"
 #include "../file/Layer.h"
-
+#include "LineTool.h"
+//TODO: make this at least connect using the line tool
 void PencilTool::Stroke() {
-	
-	glm::ivec2 rel = CanvasManager::GetRelativeCursorPos();
+
+	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	float* color_float = CanvasManager::color;
+	//TODO: support width
+	//TODO: optimize
+	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
+	if (color[3] == 0)return;
+	glm::ivec2 lastPos = CanvasManager::GetLastRelativeCursorPos();
+	glm::ivec2 pos = CanvasManager::GetRelativeCursorPos();
 	CanvasObjectPtr obj = CanvasManager::GetCanvas();
+	
+	ImagePtr image = (*obj->layers)[obj->selectedLayer]->image;//WARN:hardcoded!
+	LineTool::LineRender(image->texture, image->width, image->height, lastPos.x, lastPos.y, pos.x, pos.y, color);
+
+	/*
+	//TODO: optimize
 	float* color_float = CanvasManager::color;
 
-	//TODO: optimize
 	int color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
 	int radius = 16;
 
-
-	int start_x = rel.x - radius; int end_x = rel.x + radius;
-	int start_y = rel.y - radius; int end_y = rel.y + radius;
+	
+	int start_x = pos.x - radius; int end_x = pos.x + radius;
+	int start_y = pos.y - radius; int end_y = pos.y + radius;
 	//don't draw if it's not even on the canvas
 	if (obj->selectedLayer == -1)return;//TODO: no layer alert
 	ImagePtr image = (*obj->layers)[obj->selectedLayer]->image;//WARN:hardcoded!
@@ -41,6 +54,7 @@ void PencilTool::Stroke() {
 			
 		}
 	}
+	*/
 	obj->Changed();
 	
 

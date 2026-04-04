@@ -16,12 +16,16 @@ CanvasObject::CanvasObject() :GameObject() {
 	model->SetLayerVector(layers);
 	//scast(CanvasModel, model)->SetImage(image); alternative
 }
-void CanvasObject::LoadImageSync(std::string path) {
+//TODO:make useful
+void CanvasObject::AddLayer(std::string path) {
 	image = std::make_shared<Image>(path);
-	model->SetImage(image);
-	//scast(CanvasModel, model)->SetImage(image);//alert canvas that image changed
+	layers->push_back(std::make_shared<Layer>(image));
+	selectedLayer = layers->size() - 1;
+
+	model->selected_layer = selectedLayer;
+	model->InitLayer(layers->size() - 1);
 }
-void CanvasObject::LoadImageSync(ImagePtr i) {
+void CanvasObject::AddLayer(ImagePtr i) {
 	image = i;
 	layers->push_back(std::make_shared<Layer>(image));
 	selectedLayer = layers->size()-1;
@@ -38,7 +42,9 @@ CanvasObject::~CanvasObject() {
 void CanvasObject::Changed() {
 	model->Changed();
 }
-
+void CanvasObject::Changed(unsigned int layer) {
+	model->Changed(layer);
+}
 void CanvasObject::Draw() {
 	glm::mat4 m, p;
 	m = glm::mat4(1.0f);
@@ -101,6 +107,9 @@ void CanvasObject::SwapLayerDown(int index) {
 void CanvasObject::ToggleVisible(int index) {//TODO: add check to all index based functions
 	(*layers)[index]->visible = !(*layers)[index]->visible;
 }
+bool CanvasObject::GetVisible(int index) {//TODO: add check to all index based functions
+	return (*layers)[index]->visible;
+}
 void CanvasObject::Remove(int index) {
 	//TODO: don't immediately remove, keep for potential undos!
 	
@@ -126,5 +135,5 @@ void CanvasObject::Remove(int index) {
 	//(*layers)[index]->visible = !(*layers)[index]->visible;
 }
 void CanvasObject::AddLayer() {
-	LoadImageSync(std::make_shared<Image>(640, 400));
+	AddLayer(std::make_shared<Image>(640, 400));
 }

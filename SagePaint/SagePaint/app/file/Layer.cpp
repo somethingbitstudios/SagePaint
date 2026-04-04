@@ -9,6 +9,7 @@ void Layer::Init() {
 	opacity = 1.0f;
 	blend = BLEND_Normal;
 	textureId = 0;
+	id = layerCount;
 }
 Layer::~Layer() {
 

@@ -4,6 +4,8 @@
 #include "../tools/PencilTool.h"
 #include "../tools/ToolManager.h"
 #include "../tools/LineTool.h"
+#include "../tools/FillTool.h"
+#include "../tools/ShapeTool.h"
 
 void PointerDown() {
     switch (ToolManager::tool_type) { //TODO: replace with inline function
@@ -12,6 +14,12 @@ void PointerDown() {
         break;
     case TOOL_LINE:
         LineTool::LineStart();
+        break;
+    case TOOL_FILL:
+        FillTool::Fill();
+        break;
+    case TOOL_SHAPE:
+        ShapeTool::ShapeStart();
         break;
 
     } 
@@ -24,7 +32,10 @@ void Pointer() {
     case TOOL_LINE:
         LineTool::LinePreview();
         break;
-
+    
+    case TOOL_SHAPE:
+        ShapeTool::ShapePreview();
+        break;
     }
 }
 void PointerUp() {
@@ -34,6 +45,9 @@ void PointerUp() {
         break;
     case TOOL_LINE:
         LineTool::LineEnd();
+        break;
+    case TOOL_SHAPE:
+        ShapeTool::ShapeEnd();
         break;
 
     }

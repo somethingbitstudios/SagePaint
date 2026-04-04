@@ -4,12 +4,15 @@
 #include <glm/ext/vector_int2.hpp>
 class CanvasManager {
 public:
+	static unsigned char transparent[4];
+
 	static void LineStart();
 	//static void PencilDrawBasic();
 	static void Drag();
 	static void Init();
 	static void UpdateRelativeCursorPos();
 	static inline glm::ivec2 GetRelativeCursorPos() { return relativeCursorPos; }
+	static inline glm::ivec2 GetLastRelativeCursorPos() { return lastRelativeCursorPos; }
 	static CanvasObjectPtr GetCanvas();
 	static void ZoomOut();
 	static void ZoomIn();
@@ -24,5 +27,6 @@ public:
 	static bool zoomType;//false -> mul, true -> add
 
 	static glm::ivec2 relativeCursorPos;
+	static glm::ivec2 lastRelativeCursorPos;
 };
 //typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;//not needed?

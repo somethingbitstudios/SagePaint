@@ -24,8 +24,10 @@ static GLuint uv_buffer;
 static GLuint texture;
 
 void CanvasModel::Changed() {
-	//SetImage(image);
 	SendLayerToGpu(selected_layer);
+}
+void CanvasModel::Changed(unsigned int i) {
+	SendLayerToGpu(i);
 }
 /*
 void CanvasModel::SwapLayerUp(int index) {
@@ -55,7 +57,7 @@ void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	}
 	else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//GL_LINEAR
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//TODO: GL_LINEAR or better filtering
 		//prevents texture bleeding to its other side
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -168,8 +170,8 @@ CanvasModel::CanvasModel() :Model() {
 
 		vertex_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.vert");
 		const char* srcVert = vertex_shader_text.c_str();
-		DLOG("scr vert:")
-		DLOG(srcVert)
+		//DLOG("scr vert:")
+		//DLOG(srcVert)
 		const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex_shader, 1, &srcVert, NULL);
 		glCompileShader(vertex_shader);
@@ -303,7 +305,7 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	//glUniform1f(time_location, time_ms);
 
 	glBindVertexArray(vertex_array);
-	for (size_t i = 0; i < (*layers).size(); i++)
+	for (size_t i = 1; i < (*layers).size(); i++)
 	{
 		//TODO send opacity to layer if visible
 		if ((*layers)[i]->visible) {
@@ -313,5 +315,13 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		}
+	}
+	//preview
+	if ((*layers)[0]->visible) {
+		glBindTexture(GL_TEXTURE_2D, (*layers)[0]->textureId);
+		glUniform1f(opacityLoc, (*layers)[0]->opacity);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 	}
 }

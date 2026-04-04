@@ -12,9 +12,10 @@ public:
 
 	CanvasObject();
 	~CanvasObject();
-	void LoadImageSync(std::string path);
-	void LoadImageSync(ImagePtr i);
+	void AddLayer(std::string path);
+	void AddLayer(ImagePtr i);
 	void Changed();
+	void Changed(unsigned int layer);
 	void SetZoom(float zoom, float forceNearestThreshold);
 	CanvasModelPtr model;
 
@@ -27,6 +28,7 @@ public:
 	void SwapLayerDown(int index);
 	
 	void ToggleVisible(int index);
+	bool GetVisible(int index);
 	void Remove(int index);
 
 	void AddLayer();

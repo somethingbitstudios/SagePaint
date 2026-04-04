@@ -13,6 +13,7 @@ enum BLEND_Type
 class Layer {
 public:
 	static unsigned int layerCount;
+	unsigned int id;
 	ImagePtr image;
 	std::string name;
 	bool visible;

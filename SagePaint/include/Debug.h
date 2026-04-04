@@ -3,7 +3,7 @@
 #pragma once
 //app control, also need to change the CMAKELIST at SagePaint/SagePaint/CmakeLists.txt, switch the comment and copy the "gg.cpp" ... "gg.h"...
 //#define HIDE_CONSOLE
-
+#define _USE_MATH_DEFINES
 
 //'toggle' to turn on/off all debug
 #define DEBUG

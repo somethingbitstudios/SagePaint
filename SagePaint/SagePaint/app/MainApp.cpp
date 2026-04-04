@@ -42,7 +42,7 @@ void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
 		IDLOG("IMPORTANT IDLOG MESSAGES ENABLED")
 		DLOG("GRANULAR DLOG MESSAGES ENABLED")
-		IDLOG("version: 0.06\n")
+		IDLOG("version: 0.64\n")
 
 
 
@@ -100,8 +100,12 @@ void MainApp() {
 		std::make_shared<Image>("C:\\temp\\miku.png")
 	};
 
-	go->LoadImageSync(std::make_shared<Image>(640, 400));
-	go->LoadImageSync(images[0]);
+	go->AddLayer(std::make_shared<Image>(640, 400));//preview
+	(*go->layers)[0]->name = "Preview";
+	(*go->layers)[0]->opacity = 0.5f;
+
+	go->AddLayer(std::make_shared<Image>(640, 400));
+	go->AddLayer(images[0]);
 	
 	//put this into a call you'll do as part of canvasManager
 
@@ -140,7 +144,7 @@ void MainApp() {
 
 		
 
-
+		//TODO:upgrade to more than 1 poll / frame for cursor, maybe using a buffer
 		glfwPollEvents();
 		InputManager::UpdateCursorPos(window);
 		CanvasManager::UpdateRelativeCursorPos();
@@ -257,6 +261,8 @@ void MainApp() {
 			ToolManager::SetTool(TOOL_LINE);
 		if (ImGui::Button("Shape"))
 			ToolManager::SetTool(TOOL_SHAPE);
+		if (ImGui::Button("Fill"))
+			ToolManager::SetTool(TOOL_FILL);
 
 		ImGui::End();
 
@@ -286,8 +292,8 @@ void MainApp() {
 			}
 			
 			ImGui::SameLine();
-
-			if (ImGui::Button("Vis"))
+			
+			if (ImGui::Button(CanvasManager::obj->GetVisible(i)?"Hide" : "Show"))
 			{
 				CanvasManager::obj->ToggleVisible(i);
 
@@ -334,18 +340,13 @@ void MainApp() {
 
 		ImGui::End();
 
+		
 		if (ImGui::BeginMainMenuBar())
 		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("New", "Shortcut")) {}
-				if (ImGui::MenuItem("Open", "Shortcut")) {}
-				if (ImGui::MenuItem("Save", "Shortcut")) {}
-				if (ImGui::MenuItem("Exit")) {}
+			
+			runApp = ProjectManager::ShowFileUI();
 
-				ImGui::EndMenu();
-			}
-
+			
 			if (ImGui::BeginMenu("View"))
 			{
 
@@ -355,6 +356,9 @@ void MainApp() {
 
 			ImGui::EndMainMenuBar();
 		}
+		
+
+	
 
 		ImDrawList* draw = ImGui::GetForegroundDrawList();
 		draw->AddText(ImVec2(ImGui::GetIO().DisplaySize.x - 92, 3), IM_COL32(255, 255, 255, 255),
