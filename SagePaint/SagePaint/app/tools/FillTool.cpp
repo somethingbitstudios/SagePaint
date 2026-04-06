@@ -8,7 +8,7 @@
 void FillTool::Fill() {
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
-	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 
 	float* color_float = CanvasManager::color;
 	//TODO: support width

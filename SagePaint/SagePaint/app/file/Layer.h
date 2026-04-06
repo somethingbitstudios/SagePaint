@@ -23,6 +23,7 @@ public:
 	GLuint textureId;
 	void Init();
 	Layer();
+	Layer(unsigned int x,unsigned int y);
 	Layer(ImagePtr i);
 	~Layer();
 

@@ -24,6 +24,18 @@ void CanvasManager::Init() {
 	
 
 }
+
+void CanvasManager::Clear() {
+	for (int i = 0; i < obj->layers->size(); i++) {
+		obj->model->Discard(i);
+	}
+	obj->selectedLayer = -1;
+	obj->model->selected_layer = -1;
+	obj->layers->clear();
+	if (obj->resX < 1)obj->resX = 640;
+	if (obj->resY < 1)obj->resY = 400;
+
+}
 CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }
 
 void CanvasManager::UpdateRelativeCursorPos() {
@@ -32,8 +44,8 @@ void CanvasManager::UpdateRelativeCursorPos() {
 
 
 	
-	int rel_x = ((x - obj->pos.x) / zoom + obj->image->width / 2.0f);
-	int rel_y = ((y - obj->pos.y) / zoom + obj->image->height / 2.0f);
+	int rel_x = ((x - obj->pos.x) / zoom + obj->resX / 2.0f);
+	int rel_y = ((y - obj->pos.y) / zoom + obj->resY / 2.0f);
 	
 	lastRelativeCursorPos = relativeCursorPos;
 	relativeCursorPos = { rel_x,rel_y };

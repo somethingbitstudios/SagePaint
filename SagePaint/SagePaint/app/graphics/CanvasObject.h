@@ -14,12 +14,15 @@ public:
 	~CanvasObject();
 	void AddLayer(std::string path);
 	void AddLayer(ImagePtr i);
+	void AddLayer(LayerPtr l);
+	void SetSelectedLayer(int i);
 	void Changed();
 	void Changed(unsigned int layer);
 	void SetZoom(float zoom, float forceNearestThreshold);
+
 	CanvasModelPtr model;
 
-
+	//deprecated
 	ImagePtr image;
 
 	//TODO: maintain layers here (?), then send as a & reference parameter to model
@@ -34,6 +37,7 @@ public:
 	void AddLayer();
 
 	std::shared_ptr<std::vector<LayerPtr>> layers;
-	unsigned int selectedLayer;
+	int selectedLayer;
+	unsigned int resX, resY;
 };
 typedef std::shared_ptr<CanvasObject> CanvasObjectPtr;

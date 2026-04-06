@@ -4,7 +4,7 @@ unsigned int Layer::layerCount = 0;
 
 void Layer::Init() {
 
-	name = "Layer " + std::to_string(++layerCount);
+	name = "Layer " + std::to_string(layerCount++);
 	visible = true;
 	opacity = 1.0f;
 	blend = BLEND_Normal;
@@ -16,6 +16,11 @@ Layer::~Layer() {
 }
 Layer::Layer() {
 	Init();
+}
+Layer::Layer(unsigned int x, unsigned int y)
+{
+	Init();
+	SetImage(std::make_shared<Image>(x, y));
 }
 Layer::Layer(ImagePtr i) {
 	Init();

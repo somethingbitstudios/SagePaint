@@ -317,7 +317,7 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 		}
 	}
 	//preview
-	if ((*layers)[0]->visible) {
+	if (layers->size()>0&&(*layers)[0]->visible) {
 		glBindTexture(GL_TEXTURE_2D, (*layers)[0]->textureId);
 		glUniform1f(opacityLoc, (*layers)[0]->opacity);
 

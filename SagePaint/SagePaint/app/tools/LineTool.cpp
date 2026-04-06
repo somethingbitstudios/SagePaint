@@ -17,7 +17,7 @@ void LineTool::LineEnd() {
 	//LineRender to the actual canvas
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
-	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 
 	float* color_float = CanvasManager::color;
 	//TODO: support width
@@ -34,7 +34,7 @@ void LineTool::LineEnd() {
 	CanvasManager::obj->Changed(0);
 }
 void LineTool::LinePreview() {
-	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 
 	float* color_float = CanvasManager::color;
 	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting

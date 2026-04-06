@@ -91,9 +91,12 @@ void MainApp() {
 	InputManager::Init();
 	//'start()'
 	CanvasManager::obj= std::make_shared<CanvasObject>();
-	
-
 	go = CanvasManager::obj;
+
+	//ProjectManager::Open("C:\\temp\\new.sagepaint"); //recent?
+	ProjectManager::New();
+
+	/*
 	//load some image, replace with CanvasManager call 
 	ImagePtr images[] = {
 		std::make_shared<Image>("C:\\temp\\gradient.png"),
@@ -108,6 +111,7 @@ void MainApp() {
 	go->AddLayer(images[0]);
 	
 	//put this into a call you'll do as part of canvasManager
+	*/
 
 	//TODO: put into a function
 	int width, height;

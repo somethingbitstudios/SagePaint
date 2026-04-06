@@ -15,7 +15,7 @@ void ShapeTool::ShapeStart()
 
 void ShapeTool::ShapePreview()
 {
-	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
 	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, rectConstrained);
@@ -72,7 +72,7 @@ void ShapeTool::ShapeEnd()
 {
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
-	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
 	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, rectConstrained);

@@ -5,7 +5,7 @@
 //TODO: make this at least connect using the line tool
 void PencilTool::Stroke() {
 
-	if (CanvasManager::obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 	float* color_float = CanvasManager::color;
 	//TODO: support width
 	//TODO: optimize
@@ -29,7 +29,7 @@ void PencilTool::Stroke() {
 	int start_x = pos.x - radius; int end_x = pos.x + radius;
 	int start_y = pos.y - radius; int end_y = pos.y + radius;
 	//don't draw if it's not even on the canvas
-	if (obj->selectedLayer == -1)return;//TODO: no layer alert
+	if (obj->selectedLayer < 0)return;//TODO: no layer alert
 	ImagePtr image = (*obj->layers)[obj->selectedLayer]->image;//WARN:hardcoded!
 
 	if (end_x < 0 || end_y < 0 || start_x >= image->width || start_y >= image->height) {

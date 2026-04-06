@@ -9,6 +9,8 @@
 #include <fstream>
 #include <iostream>
 #include "stb_image.h"
+#include <nlohmann/json.hpp>
+
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -18,13 +20,19 @@ bool ProjectManager::ShowFileUI()
 {
 	static bool show_exit_popup = false;
 	static bool show_save_popup = false;
+	static bool show_open_popup = false;
 	if (ImGui::BeginMenu("File"))
 	{
 		if (ImGui::MenuItem("New", "Shortcut")) {
-
+			New();//if dirty, dont do this
 		}
 		if (ImGui::MenuItem("Open", "Shortcut")) {
-
+			if (false/*dirty*/) {
+				show_save_popup = true;
+			}
+			else {
+				show_open_popup = true;
+			}
 		}
 		if (ImGui::MenuItem("Save", "Shortcut")) {
 			
@@ -36,7 +44,7 @@ bool ProjectManager::ShowFileUI()
 		}
 		if (ImGui::MenuItem("Exit")) {
 			//Open dialog box	
-			if (dirty) {
+			if (false/*dirty*/) {
 				show_exit_popup = true;
 			}
 			else {
@@ -54,11 +62,45 @@ bool ProjectManager::ShowFileUI()
 			ImGui::OpenPopup("Save Changes?");
 			show_exit_popup = false; 
 		}
-
 		if (show_save_popup) {
 			ImGui::OpenPopup("Save As");
 			show_save_popup = false;
 		}
+		if (show_open_popup) {
+			ImGui::OpenPopup("Open project");
+			show_open_popup = false;
+		}
+		//SAVEAS
+
+		static std::string open_filename = "C:\\temp\\new.sagepaint";
+
+
+		if (ImGui::BeginPopupModal("Open project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("Enter file name or path to open:");
+
+
+			ImGui::InputText("##open_filename", &open_filename);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Open", ImVec2(120, 0)))
+			{
+				// Pass the string to your Save function
+				Open(open_filename);
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
 		//SAVEAS
 		
 		static std::string save_filename = "C:\\temp\\new.sagepaint";
@@ -189,59 +231,161 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 		return 1;
 	}
 
-	out << "{\n";
-	out << "	name: \"";
-	out << name;
-	out << "\"\n	version: \"";
-	out << "0.64";
-	out << "\"\n	description: \"";
-	out << "This is a SagePaint project!";
+	out << R"({
+    "name": ")" << name << R"(",
+    "version": "0.64",
+    "description": "This is a SagePaint project!",
+	"resolutionX": )" << CanvasManager::obj->resX << R"(,
+	"resolutionY": )" << CanvasManager::obj->resY;
 
-	out << "\"\n	layers: {";
-	//for
-	unsigned int layerCount = CanvasManager::obj->layers->size();
-	for (int i = 1; i < layerCount; i++) {//WARN: 1 because of preview
-		LayerPtr layer = (*CanvasManager::obj->layers)[i];
+	int layerCount = CanvasManager::obj->layers->size();
+	if (layerCount > 0) {
+		out << ",\n		\"layers\": [";
+
+		int layerCount = CanvasManager::obj->layers->size();
+		for (int i = 1; i < layerCount - 1; i++) {//WARN: 1 because of preview
+			LayerPtr layer = (*CanvasManager::obj->layers)[i];
+			out << "\n		{";
+			out << "\n			\"id\": ";
+			out << layer->id;
+			out << ",\n			\"name\": \"";
+			out << layer->name;
+			out << "\",\n			\"visible\": ";
+			out << ((layer->visible) ? "true" : "false");
+			out << ",\n			\"opacity\": ";
+			out << std::fixed << layer->opacity;
+			out << ",\n			\"blend\": ";
+			out << (int)layer->blend;
+			out << "\n		},";
+			//put .png into data
+			ImagePtr img = layer->image;
+
+			std::string gg = dataDir.string() + std::to_string(layer->id) + ".png";
+			stbi_write_png(gg.c_str(), img->width, img->height, 4, img->texture, img->width * 4);
+		}
+
+		LayerPtr layer = (*CanvasManager::obj->layers)[layerCount - 1];
 		out << "\n		{";
-		out << "\n			id: ";
+		out << "\n			\"id\": ";
 		out << layer->id;
-		out << "\n			name: \"";
+		out << ",\n			\"name\": \"";
 		out << layer->name;
-		out << "\"\n			visible: ";
-		out << layer->visible;
-		out << "\n			opacity: ";
-		out << layer->opacity;
-		out << "\n			blend: ";
+		out << "\",\n			\"visible\": ";
+		out << ((layer->visible) ? "true" : "false");
+		out << ",\n			\"opacity\": ";
+		out << std::fixed << layer->opacity;
+		out << ",\n			\"blend\": ";
 		out << (int)layer->blend;
-		out << "\n		},";
+		out << "\n		}";
 		//put .png into data
 		ImagePtr img = layer->image;
 
 		std::string gg = dataDir.string() + std::to_string(layer->id) + ".png";
 		stbi_write_png(gg.c_str(), img->width, img->height, 4, img->texture, img->width * 4);
+
+
+		out << "\n	]";
 	}
-	out << "\n	}";
+	
 
 	//layers
 	out << "\n}\n";
 
 	out.close();
 
+	//Open(path);//Test
+	return false;
+}
+
+
+
+bool ProjectManager::Open(std::string path)
+{
+	Clear();//clear data
+
+
+	namespace fs = std::filesystem;
+	fs::path targetPath(path);
+
+	fs::path dataDir = targetPath / "data" / "";
+	fs::path configFile = targetPath / "project.conf";
 	
-	return false;
-}
+	
+	using json = nlohmann::json;
 
-bool ProjectManager::SaveAs()
-{
-	return false;
-}
+	std::ifstream in(configFile);
+	if (!in) {
+		DLOG("Failed to load config file");
+		return 1;
+	}
 
-bool ProjectManager::Open()
-{
-	return false;
+	json j;
+	in >> j;
+
+	std::string name = j.value("name", "");
+	std::string version = j.value("version", "");
+	std::string description = j.value("description", "");
+	unsigned int rX, rY;
+	rX = j.value("resolutionX", 640);
+	rY = j.value("resolutionY",400);
+	//validate
+	CanvasManager::obj->resX = rX;
+	CanvasManager::obj->resY = rY;
+
+	//add the preview layer
+	LayerPtr l = std::make_shared<Layer>(rX, rY);
+	l->name = "Preview";
+	l->opacity = 0.5f;
+	CanvasManager::obj->AddLayer(l);
+
+		if (!j.contains("layers") || !j["layers"].is_array()) {
+			DLOG("no layers");
+			return false;
+		}
+
+	for (const auto& layerJson : j["layers"]) {
+		int id = layerJson.value("id", 0);
+		std::string layer_name = layerJson.value("name", "");
+		bool visible = layerJson.value("visible", true);
+		float opacity = layerJson.value("opacity", 1.0f);
+		int blend = layerJson.value("blend", 0);
+
+		
+
+		LayerPtr lp = std::make_shared<Layer>();
+		lp->id = id;
+		lp->name = layer_name;
+		lp->visible = visible;
+		lp->opacity = opacity;
+		lp->blend = (BLEND_Type) blend;
+		lp->image = std::make_shared<Image>(dataDir.string() + std::to_string(id) + ".png");
+		CanvasManager::obj->AddLayer(lp);
+	}
+
+	CanvasManager::obj->SetSelectedLayer(-1);//max
+	
+return false;
 }
 
 bool ProjectManager::New()
 {
+	int rX, rY;
+	rX = CanvasManager::obj->resX;
+	rY = CanvasManager::obj->resY;
+	Clear();
+	//...
+	LayerPtr l = std::make_shared<Layer>(rX, rY);
+	l->name = "Preview";
+	l->opacity = 0.5f;
+	CanvasManager::obj->AddLayer(l);
+
+	l = std::make_shared<Layer>(rX, rY);
+	CanvasManager::obj->AddLayer(l);
+	return false;
+}
+bool ProjectManager::Clear()
+{
+	CanvasManager::Clear();
+
 	return false;
 }

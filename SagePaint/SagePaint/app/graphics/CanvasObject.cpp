@@ -1,7 +1,10 @@
 #include "CanvasObject.h"
 #include "shortcuts.h"
+#include <algorithm>
 
 CanvasObject::CanvasObject() :GameObject() {
+	resX = 640;
+	resY = 400;
 	layers = std::make_shared<std::vector<LayerPtr>>();
 	//initialize canvas
 	//image = std::make_shared<Image>(640,360);//WARN: might be extra and not needed!
@@ -34,6 +37,20 @@ void CanvasObject::AddLayer(ImagePtr i) {
 	model->InitLayer(layers->size()-1);
 	//scast(CanvasModel, model)->SetImage(i);//alert canvas that image changed
 }
+void CanvasObject::AddLayer(LayerPtr l){
+	layers->push_back(l);
+	model->InitLayer(layers->size() - 1);
+
+
+}
+
+void CanvasObject::SetSelectedLayer(int i)
+{
+	if (i < 0)i += layers->size();
+	i = std::min((int)layers->size() - 1, std::max(i, 0));
+	selectedLayer = i;
+	model->selected_layer = i;
+}
 
 CanvasObject::~CanvasObject() {
 	DLOG("Canvas start deletion")
@@ -60,8 +77,8 @@ void CanvasObject::Draw() {
 }
 void CanvasObject::SetZoom(float zoom,float forceNearestThreshold) {
 
-	scale.x = (float)image->width * zoom;
-	scale.y = (float)image->height * zoom;
+	scale.x = (float)resX * zoom;
+	scale.y = (float)resY * zoom;
 	model->SetZoom(zoom,forceNearestThreshold);
 }
 

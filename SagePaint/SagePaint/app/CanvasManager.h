@@ -16,6 +16,7 @@ public:
 	static CanvasObjectPtr GetCanvas();
 	static void ZoomOut();
 	static void ZoomIn();
+	static void Clear();
 	static CanvasObjectPtr obj; 
 	static float color[4];
 	static float zoom;

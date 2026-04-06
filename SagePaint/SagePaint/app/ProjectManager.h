@@ -7,7 +7,7 @@ public:
 	static bool ShowFileUI();
 	static bool Exit();
 	static bool Save(std::string path);
-	static bool SaveAs();
-	static bool Open();
+	static bool Open(std::string path);
 	static bool New();
+	static bool Clear();
 };
