@@ -6,61 +6,104 @@
 #include "../tools/LineTool.h"
 #include "../tools/FillTool.h"
 #include "../tools/ShapeTool.h"
+#include "../tools/SelectTool.h"
+#include "../ui/UIManager.h"
 
 void PointerDown() {
-    switch (ToolManager::tool_type) { //TODO: replace with inline function
-    case TOOL_PENCIL:
-        PencilTool::StrokeStart();
-        break;
-    case TOOL_LINE:
-        LineTool::LineStart();
-        break;
-    case TOOL_FILL:
-        FillTool::Fill();
-        break;
-    case TOOL_SHAPE:
-        ShapeTool::ShapeStart();
-        break;
+    if (UIManager::GetCursorFocus() == FOCUS_CANVAS) {
+        switch (ToolManager::tool_type) { //TODO: replace with inline function
+        case TOOL_PENCIL:
+            PencilTool::StrokeStart();
+            break;
+        case TOOL_LINE:
+            LineTool::LineStart();
+            break;
+        case TOOL_FILL:
+            FillTool::Fill();
+            break;
+        case TOOL_SHAPE:
+            ShapeTool::ShapeStart();
+            break;
+        case TOOL_SELECT:
+            if (SelectTool::dragMode) {
 
-    } 
+            }
+            else {
+                SelectTool::SelectStart();
+            }
+            break;
+        }
+    }
+     
 }
 void Pointer() {
-    switch (ToolManager::tool_type) {
-    case TOOL_PENCIL:
-        PencilTool::Stroke();
-        break;
-    case TOOL_LINE:
-        LineTool::LinePreview();
-        break;
-    
-    case TOOL_SHAPE:
-        ShapeTool::ShapePreview();
-        break;
+    if (UIManager::GetCursorFocus() == FOCUS_CANVAS) {
+        switch (ToolManager::tool_type) {
+        case TOOL_PENCIL:
+            PencilTool::Stroke();
+            break;
+        case TOOL_LINE:
+            LineTool::LinePreview();
+            break;
+
+        case TOOL_SHAPE:
+            ShapeTool::ShapePreview();
+            break;
+        case TOOL_SELECT:
+            if (SelectTool::dragMode) {
+                SelectTool::SelectDragRender();
+            }
+            else {
+
+                SelectTool::SelectPreview();
+            }
+            break;
+        }
     }
 }
 void PointerUp() {
-    switch (ToolManager::tool_type) {
-    case TOOL_PENCIL:
-        PencilTool::StrokeEnd();
-        break;
-    case TOOL_LINE:
-        LineTool::LineEnd();
-        break;
-    case TOOL_SHAPE:
-        ShapeTool::ShapeEnd();
-        break;
 
+    if (UIManager::GetCursorFocus() == FOCUS_CANVAS) {
+        switch (ToolManager::tool_type) {
+        case TOOL_PENCIL:
+            PencilTool::StrokeEnd();
+            break;
+        case TOOL_LINE:
+            LineTool::LineEnd();
+            break;
+        case TOOL_SHAPE:
+            ShapeTool::ShapeEnd();
+            break;
+        case TOOL_SELECT:
+            if (SelectTool::dragMode) {
+                SelectTool::SelectDragCommit();
+            }
+            else {
+                SelectTool::SelectEnd();
+            }
+            break;
+
+        }
     }
 }
 
 void Drag() {//this is ok until it's dragging something outside of the canvas is needed
-    CanvasManager::Drag();
+
+    if (UIManager::GetCursorFocus() == FOCUS_CANVAS) {
+        CanvasManager::Drag();
+    }
 }
 void ZoomOut() {
-    CanvasManager::ZoomOut();
+
+    if (UIManager::GetCursorFocus() == FOCUS_CANVAS) {
+        CanvasManager::ZoomOut();
+    }
 }
 void ZoomIn() {
-    CanvasManager::ZoomIn();
+
+    if (UIManager::GetCursorFocus() == FOCUS_CANVAS) {
+        CanvasManager::ZoomIn();
+    }
 }
 
 std::vector<FunctionData> inputFunctions;

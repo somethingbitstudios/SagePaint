@@ -7,6 +7,7 @@ glm::ivec2 lastUpPos1 = { 0,0 };
 unsigned int ShapeTool::pointNumber = 640;
 float ShapeTool::angleOffset = 0;
 bool ShapeTool::rectConstrained = false;
+bool ShapeTool:: fastRect = true;
 
 void ShapeTool::ShapeStart()
 {
@@ -18,7 +19,7 @@ void ShapeTool::ShapePreview()
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
-	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, rectConstrained);
+	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, rectConstrained, fastRect);
 
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 	float* color_float = CanvasManager::color;
@@ -27,16 +28,35 @@ void ShapeTool::ShapePreview()
 	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
 	if (color[3] == 0)return;
 
-	ShapeRender(image->texture, image->width, image->height, downPos, upPos, color, rectConstrained);
+	ShapeRender(image->texture, image->width, image->height, downPos, upPos, color, rectConstrained,fastRect);
 
 	lastUpPos1 = upPos;
 	CanvasManager::obj->Changed(0);
 
 }
 
-void ShapeTool::ShapeRender(unsigned char* texture, int tex_w, int tex_h, glm::ivec2 startPos, glm::ivec2 endPos, unsigned char color[4],bool rectConstrained)
+//split into multiple functions for performance and clarity
+void ShapeTool::ShapeRender(unsigned char* texture, int tex_w, int tex_h, glm::ivec2 startPos, glm::ivec2 endPos, unsigned char color[4],bool rectConstrained,bool fastRect)
 {
-	if (rectConstrained) { //pos0+pos1 / 2 == middle 
+	if (fastRect) {
+		//top line
+		LineTool::LineRender(texture,tex_w,tex_h,startPos.x,startPos.y,endPos.x,startPos.y,color);
+		LineTool::LineRender(texture,tex_w,tex_h,startPos.x,endPos.y,endPos.x,endPos.y,color);
+		if (abs(startPos.y - endPos.y) > 1) {
+			if (startPos.y < endPos.y) {
+				LineTool::LineRender(texture, tex_w, tex_h, startPos.x, startPos.y + 1, startPos.x, endPos.y - 1, color);//
+				LineTool::LineRender(texture, tex_w, tex_h, endPos.x, startPos.y + 1, endPos.x, endPos.y - 1, color);//
+
+			}
+			else {
+				LineTool::LineRender(texture, tex_w, tex_h, startPos.x, startPos.y - 1, startPos.x, endPos.y + 1, color);//
+				LineTool::LineRender(texture, tex_w, tex_h, endPos.x, startPos.y - 1, endPos.x, endPos.y + 1, color);//
+
+			}
+			}
+
+	}
+	else if (rectConstrained) { //pos0+pos1 / 2 == middle 
 		//make special rect simple function without angles
 
 		glm::vec2 middlePos = glm::vec2((startPos.x + endPos.x) / 2.0f, (startPos.y + endPos.y) / 2.0f);
@@ -68,6 +88,42 @@ void ShapeTool::ShapeRender(unsigned char* texture, int tex_w, int tex_h, glm::i
 	}
 }
 
+void ShapeTool::ShapeRenderFilledRect(unsigned char* texture, int tex_w, int tex_h, glm::ivec2 startPos, glm::ivec2 endPos, unsigned char color[4])
+{
+	if (!texture || tex_w <= 0 || tex_h <= 0) return;
+
+	//border check
+	int x_min = std::min(startPos.x, endPos.x);
+	int x_max = std::max(startPos.x, endPos.x);
+	int y_min = std::min(startPos.y, endPos.y);
+	int y_max = std::max(startPos.y, endPos.y);
+	x_min = std::max(0, x_min);
+	x_max = std::min(tex_w - 1, x_max);
+	y_min = std::max(0, y_min);
+	y_max = std::min(tex_h - 1, y_max);
+
+	//offscreen test
+	if (x_min > x_max || y_min > y_max) {
+		return;
+	}
+
+	// 4byte array => uint32
+	uint32_t fill_color;
+	std::memcpy(&fill_color, color, 4);
+
+	
+	int line = tex_w * 4;
+
+	for (int y = y_min; y <= y_max; ++y) {
+		unsigned char* row_byte_ptr = texture + (y * line);
+
+		uint32_t* row_pixel_ptr = reinterpret_cast<uint32_t*>(row_byte_ptr);
+
+		//magic
+		std::fill(row_pixel_ptr + x_min, row_pixel_ptr + x_max + 1, fill_color);
+	}
+}
+
 void ShapeTool::ShapeEnd()
 {
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
@@ -75,7 +131,7 @@ void ShapeTool::ShapeEnd()
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
-	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, rectConstrained);
+	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, rectConstrained, fastRect);
 
 	float* color_float = CanvasManager::color;
 	//TODO: support width
@@ -84,7 +140,7 @@ void ShapeTool::ShapeEnd()
 	if (color[3] == 0)return;
 
 	image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
-	ShapeRender(image->texture, image->width, image->height, downPos, upPos, color,rectConstrained);
+	ShapeRender(image->texture, image->width, image->height, downPos, upPos, color,rectConstrained, fastRect);
 	CanvasManager::obj->Changed();
 	CanvasManager::obj->Changed(0);
 

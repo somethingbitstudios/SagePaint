@@ -19,6 +19,7 @@ public:
 	static void Clear();
 	static CanvasObjectPtr obj; 
 	static float color[4];
+	static float backgroundColor[4];
 	static float zoom;
 	static float zoomRateAdditiveMicro;
 	static float zoomRateAdditiveMacro;

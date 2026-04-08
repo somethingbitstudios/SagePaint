@@ -381,6 +381,8 @@ bool ProjectManager::New()
 
 	l = std::make_shared<Layer>(rX, rY);
 	CanvasManager::obj->AddLayer(l);
+
+	CanvasManager::obj->SetSelectedLayer(-1);//max
 	return false;
 }
 bool ProjectManager::Clear()

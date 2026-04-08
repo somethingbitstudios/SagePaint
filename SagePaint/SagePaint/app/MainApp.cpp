@@ -3,6 +3,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "./tools/ToolManager.h"
+#include "ui/UIManager.h"
 //InputManagerPtr inputManager = std::make_shared<InputManager>();
 //CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
@@ -36,7 +37,7 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 	//InputManager::SetCursorPos(xpos, ypos); TODO: USE AFTER IMPLEMENTING POSITIONBUFFER
 }
 
-float backgroundColor[4] = { 0.1f,0.05f,0.1f,1 };//TODO: move to some appstorage class
+
 
 void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
@@ -140,7 +141,7 @@ void MainApp() {
 		Screen_height = (float)height;
 		Screen_ratio = width / (float)height;
 		glViewport(0, 0, width, height);
-		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
+		glClearColor(CanvasManager::backgroundColor[0], CanvasManager::backgroundColor[1], CanvasManager::backgroundColor[2], CanvasManager::backgroundColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -153,6 +154,7 @@ void MainApp() {
 		InputManager::UpdateCursorPos(window);
 		CanvasManager::UpdateRelativeCursorPos();
 		InputManager::ProcessHeld();
+
 
 		//'update' like portion
 
@@ -251,118 +253,7 @@ void MainApp() {
 		
 
 
-		ImGui::SetNextWindowPos(ImVec2(0, 18));
-		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y-18));
-
-		ImGui::Begin("LeftMenu", nullptr,
-			ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-
-		ImGui::Text("Tools:");
-		if (ImGui::Button("Pencil"))
-			ToolManager::SetTool(TOOL_PENCIL);
-		if (ImGui::Button("Line"))
-			ToolManager::SetTool(TOOL_LINE);
-		if (ImGui::Button("Shape"))
-			ToolManager::SetTool(TOOL_SHAPE);
-		if (ImGui::Button("Fill"))
-			ToolManager::SetTool(TOOL_FILL);
-
-		ImGui::End();
-
-
-		ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x-250, 18));
-		ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y-18));
-		ImGui::Begin("RightMenu", nullptr,
-			ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-
-		ImGui::Text("The right menu");
-		ImGui::ColorEdit4("My Color", (float*)&CanvasManager::color);
-		ImGui::ColorEdit4("Background", (float*)&backgroundColor);
-		ImGui::Text(("X: " + std::to_string(go->pos.x)).c_str());
-		ImGui::Text(("Y: " + std::to_string(go->pos.y)).c_str());
-
-
-		ImGui::Text("Layers:");
-		for (int i = CanvasManager::obj->layers->size()-1; i >=0; i--) {
-			ImGui::PushID(i);
-			
-			if (ImGui::Button((*CanvasManager::obj->layers)[i]->name.c_str()))
-			{
-				CanvasManager::obj->selectedLayer = i;
-				CanvasManager::obj->model->selected_layer = i;//TODO: wrap
-
-			}
-			
-			ImGui::SameLine();
-			
-			if (ImGui::Button(CanvasManager::obj->GetVisible(i)?"Hide" : "Show"))
-			{
-				CanvasManager::obj->ToggleVisible(i);
-
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("X")) {
-				//TODO: schedule instead of the break hotfix
-				CanvasManager::obj->Remove(i);
-				ImGui::PopID();
-				break;
-			}
-
-				
-			ImGui::SameLine();
-
-			if (ImGui::Button("Up"))
-			{
-				CanvasManager::obj->SwapLayerUp(i);
-			}
-				
-			ImGui::SameLine();
-
-			if (ImGui::Button("Down")) {
-				CanvasManager::obj->SwapLayerDown(i);
-
-			}
-
-
-			if (CanvasManager::obj->selectedLayer == i) {
-
-				ImGui::SameLine(); ImGui::Text("*");
-			}
-
-			if (ImGui::InputFloat("", &(*CanvasManager::obj->layers)[i]->opacity))
-			{
-				(*CanvasManager::obj->layers)[i]->opacity = max(0.0f, min(1.0f, (*CanvasManager::obj->layers)[i]->opacity));
-
-			}
-			ImGui::PopID();
-		}
-		if (ImGui::Button("New Layer")) {
-			CanvasManager::obj->AddLayer();
-		}
-
-		ImGui::End();
-
-		
-		if (ImGui::BeginMainMenuBar())
-		{
-			
-			runApp = ProjectManager::ShowFileUI();
-
-			
-			if (ImGui::BeginMenu("View"))
-			{
-
-				ImGui::EndMenu();
-			}
-
-
-			ImGui::EndMainMenuBar();
-		}
-		
-
-	
+		runApp = UIManager::ShowUI();
 
 		ImDrawList* draw = ImGui::GetForegroundDrawList();
 		draw->AddText(ImVec2(ImGui::GetIO().DisplaySize.x - 92, 3), IM_COL32(255, 255, 255, 255),
