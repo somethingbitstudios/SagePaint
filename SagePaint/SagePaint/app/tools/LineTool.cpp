@@ -3,6 +3,7 @@
 #include "../file/Layer.h"
 #include <glm/ext/vector_int2.hpp>
 #include <algorithm>
+#include "../ProjectManager.h"
 glm::ivec2 LineTool::downPos = { 0,0 };
 glm::ivec2 lastUpPos = { 0,0 };
 
@@ -32,6 +33,7 @@ void LineTool::LineEnd() {
 	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,color);
 	CanvasManager::obj->Changed();
 	CanvasManager::obj->Changed(0);
+	ProjectManager::Dirty();
 }
 void LineTool::LinePreview() {
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert

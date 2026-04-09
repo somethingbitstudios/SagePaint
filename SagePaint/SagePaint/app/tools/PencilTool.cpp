@@ -2,6 +2,7 @@
 #include "../CanvasManager.h"
 #include "../file/Layer.h"
 #include "LineTool.h"
+#include "../ProjectManager.h"
 //TODO: make this at least connect using the line tool
 void PencilTool::Stroke() {
 
@@ -63,5 +64,5 @@ void PencilTool :: StrokeStart() {
 
 }
 void PencilTool::StrokeEnd() {
-
+	ProjectManager::Dirty();
 }

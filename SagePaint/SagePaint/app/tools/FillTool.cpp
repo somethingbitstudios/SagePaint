@@ -3,6 +3,7 @@
 #include <glm/ext/vector_int2.hpp>
 #include "../CanvasManager.h"
 #include <queue>
+#include "../ProjectManager.h"
 
 //TODO: make it, make multiple versions too
 void FillTool::Fill() {
@@ -21,6 +22,7 @@ void FillTool::Fill() {
 	FillTool::FillRender(image->texture, image->width, image->height, upPos.x,upPos.y,color);
 	
 	CanvasManager::obj->Changed();
+    ProjectManager::Dirty();
 
 }
 void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, unsigned char color[4]) {

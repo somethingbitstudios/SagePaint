@@ -19,6 +19,7 @@ glm::ivec2 CanvasManager::lastRelativeCursorPos = { 0,0 };
 
 
 void CanvasManager::Init() {
+	zoom = 1.f;
 	obj->SetZoom(zoom, scalingNonIntUseLinearThreshold);
 	obj->pos.x = Screen_width / 2;//obj->image->width/2 * zoom;
 	obj->pos.y = Screen_height / 2;//obj->image->height/2 * zoom;
@@ -147,3 +148,5 @@ void CanvasManager::ZoomIn() {
 		obj->pos.y -= diff.y;
 	}
 }
+
+

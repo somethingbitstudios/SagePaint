@@ -1,6 +1,7 @@
 #include "SelectTool.h"
 #include "../CanvasManager.h"
 #include "ShapeTool.h"
+#include "../ProjectManager.h"
 
 glm::ivec2 lastUpPos2 = { 0,0 };
 glm::ivec2 SelectTool::downPos = { 0,0 };
@@ -94,6 +95,7 @@ void SelectTool::SelectDragCommit()
 	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
 	//lastUpPos2 = upPos;
 	dragMode = false;//simple version for debugging
+	ProjectManager::Dirty();
 }
 
 

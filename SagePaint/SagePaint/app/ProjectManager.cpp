@@ -14,28 +14,51 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-bool ProjectManager::dirty = true;
+
+enum ProjectAction {
+	NONE,
+	SAVE,
+	OPEN,
+	EXIT
+};
+
+bool ProjectManager::dirty = false;
 std::string ProjectManager::name = "test";
+bool ProjectManager::projectDataDirty = false;
+std::string ProjectManager::fullPath = "C:\\temp\\new.sagepaint";
+
+
+ProjectAction bufferedAction = NONE;
+bool show_exit_popup = false;
+bool show_save_popup = false;
+bool show_open_popup = false;
+bool show_opensave_popup = false;
+
 bool ProjectManager::ShowFileUI()
 {
-	static bool show_exit_popup = false;
-	static bool show_save_popup = false;
-	static bool show_open_popup = false;
+	
+
+	static std::string open_filename = fullPath;
+	static std::string save_filename = fullPath;
+
 	if (ImGui::BeginMenu("File"))
 	{
 		if (ImGui::MenuItem("New", "Shortcut")) {
 			New();//if dirty, dont do this
 		}
 		if (ImGui::MenuItem("Open", "Shortcut")) {
-			if (false/*dirty*/) {
-				show_save_popup = true;
+			if (dirty) {
+				show_opensave_popup = true;
+				//bufferedAction = SAVE;
 			}
 			else {
 				show_open_popup = true;
 			}
 		}
 		if (ImGui::MenuItem("Save", "Shortcut")) {
-			
+			if (dirty) {
+				show_save_popup = true;
+			}
 		}
 		if (ImGui::MenuItem("Save As", "Shortcut")) {
 			if (dirty) {
@@ -44,12 +67,12 @@ bool ProjectManager::ShowFileUI()
 		}
 		if (ImGui::MenuItem("Exit")) {
 			//Open dialog box	
-			if (false/*dirty*/) {
+			if (dirty) {
 				show_exit_popup = true;
 			}
 			else {
 				ImGui::EndMenu();
-				return false;
+				return false;//exits
 			}
 			//runApp = false;
 		}
@@ -61,18 +84,26 @@ bool ProjectManager::ShowFileUI()
 		{
 			ImGui::OpenPopup("Save Changes?");
 			show_exit_popup = false; 
+
+			save_filename = fullPath;
 		}
 		if (show_save_popup) {
-			ImGui::OpenPopup("Save As");
+			ImGui::OpenPopup("Save As?");
 			show_save_popup = false;
+
+			save_filename = fullPath;
 		}
 		if (show_open_popup) {
 			ImGui::OpenPopup("Open project");
 			show_open_popup = false;
+			open_filename = fullPath;
+		}if (show_opensave_popup) {
+			ImGui::OpenPopup("Save before Opening?");
+			show_opensave_popup = false;
+			open_filename = fullPath;
 		}
 		//SAVEAS
 
-		static std::string open_filename = "C:\\temp\\new.sagepaint";
 
 
 		if (ImGui::BeginPopupModal("Open project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -86,7 +117,6 @@ bool ProjectManager::ShowFileUI()
 
 			if (ImGui::Button("Open", ImVec2(120, 0)))
 			{
-				// Pass the string to your Save function
 				Open(open_filename);
 				ImGui::CloseCurrentPopup();
 			}
@@ -103,10 +133,9 @@ bool ProjectManager::ShowFileUI()
 
 		//SAVEAS
 		
-		static std::string save_filename = "C:\\temp\\new.sagepaint";
 
 
-		if (ImGui::BeginPopupModal("Save As", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginPopupModal("Save As?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::Text("Enter file name or path:");
 
@@ -117,8 +146,22 @@ bool ProjectManager::ShowFileUI()
 
 			if (ImGui::Button("Save", ImVec2(120, 0)))
 			{
-				// Pass the string to your Save function
 				Save(save_filename);
+				if (bufferedAction == OPEN) {
+					bufferedAction = NONE;
+					show_open_popup = true;
+					open_filename = fullPath;
+				}
+				else if (bufferedAction == EXIT){//TODO:let save be save OR save as
+					bufferedAction = NONE;
+
+					save_filename = fullPath;
+
+					ImGui::CloseCurrentPopup();
+
+					ImGui::EndPopup();
+					return false;
+				}
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -132,6 +175,49 @@ bool ProjectManager::ShowFileUI()
 			ImGui::EndPopup();
 		}
 
+			//EXIT
+			if (ImGui::BeginPopupModal("Save before Opening?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				ImGui::Text("Save before opening?");
+				ImGui::Separator();
+
+
+				if (ImGui::Button("Save", ImVec2(120, 0))) {
+
+					show_save_popup = true;
+					bufferedAction = EXIT;
+
+					bufferedAction = OPEN;
+					ImGui::CloseCurrentPopup();
+
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Save As", ImVec2(120, 0))) {
+
+					bufferedAction = EXIT;
+					show_save_popup = true;
+					bufferedAction = OPEN;
+					ImGui::CloseCurrentPopup();
+
+				}
+				if (ImGui::Button("Skip", ImVec2(120, 0))) {
+
+					show_open_popup = true;
+					ImGui::CloseCurrentPopup();
+					
+				}
+				ImGui::SetItemDefaultFocus();
+				ImGui::SameLine();
+
+
+				if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
+			}
+
+
 		//EXIT
 		if (ImGui::BeginPopupModal("Save Changes?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -142,12 +228,14 @@ bool ProjectManager::ShowFileUI()
 			if (ImGui::Button("Save", ImVec2(120, 0))) {
 				
 				show_save_popup = true;
+				bufferedAction = EXIT;
 				ImGui::CloseCurrentPopup();
 				
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Save As", ImVec2(120, 0))) {
 
+				bufferedAction = EXIT;
 				show_save_popup = true;
 				ImGui::CloseCurrentPopup();
 
@@ -186,6 +274,17 @@ bool ProjectManager::Exit()
 
 	
 	return false;
+}
+
+bool ProjectManager::ExitDlgOpen()
+{
+	if (dirty) {
+		show_exit_popup = true;
+	}
+	else {
+		return false;//exits
+	}
+	return true;
 }
 
 bool ProjectManager::Save(std::string path) //path may be folder, or a file to override. only override .sagepaint files, otherwise
@@ -293,7 +392,10 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 
 	out.close();
 
+	fullPath = targetPath.string();
 	//Open(path);//Test
+	dirty = false;
+	projectDataDirty = true;
 	return false;
 }
 
@@ -301,70 +403,109 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 
 bool ProjectManager::Open(std::string path)
 {
-	Clear();//clear data
+
 
 
 	namespace fs = std::filesystem;
 	fs::path targetPath(path);
 
-	fs::path dataDir = targetPath / "data" / "";
-	fs::path configFile = targetPath / "project.conf";
-	
-	
-	using json = nlohmann::json;
-
-	std::ifstream in(configFile);
-	if (!in) {
-		DLOG("Failed to load config file");
-		return 1;
+	if (!fs::exists(targetPath)) {
+		DLOG("file doesnt exist")
+			return false;
 	}
+	if (fs::is_regular_file(targetPath)) {
+		std::string ext = targetPath.extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg") {
+			Clear();
 
-	json j;
-	in >> j;
+			name = targetPath.filename().string();
+			//std::string version;
+			//std::string description = j.value("description", "");
+			unsigned int rX, rY;
+			LayerPtr image = std::make_shared<Layer>(targetPath.string());
+			image->name = targetPath.filename().string();
 
-	std::string name = j.value("name", "");
-	std::string version = j.value("version", "");
-	std::string description = j.value("description", "");
-	unsigned int rX, rY;
-	rX = j.value("resolutionX", 640);
-	rY = j.value("resolutionY",400);
-	//validate
-	CanvasManager::obj->resX = rX;
-	CanvasManager::obj->resY = rY;
+			rX = image->image->width;
+			rY = image->image->height;
+			//validate
+			CanvasManager::obj->resX = rX;
+			CanvasManager::obj->resY = rY;
 
-	//add the preview layer
-	LayerPtr l = std::make_shared<Layer>(rX, rY);
-	l->name = "Preview";
-	l->opacity = 0.5f;
-	CanvasManager::obj->AddLayer(l);
+			LayerPtr l = std::make_shared<Layer>(rX, rY);
+			l->name = "Preview";
+			l->opacity = 0.5f;
+			CanvasManager::obj->AddLayer(l);
+			CanvasManager::obj->AddLayer(image);
+
+		}
+	}
+	else if (fs::is_directory(targetPath)) {
+		fs::path dataDir = targetPath / "data" / "";
+		fs::path configFile = targetPath / "project.conf";
+
+
+		using json = nlohmann::json;
+
+		std::ifstream in(configFile);
+		if (!in) {
+			DLOG("failed to read config file");
+			return 1;
+		}
+
+		Clear();//clear data
+		json j;
+		in >> j;
+
+		name = j.value("name", "");
+		std::string version = j.value("version", "");
+		std::string description = j.value("description", "");
+		unsigned int rX, rY;
+		rX = j.value("resolutionX", 640);
+		rY = j.value("resolutionY", 400);
+		//validate
+		CanvasManager::obj->resX = rX;
+		CanvasManager::obj->resY = rY;
+
+		//add the preview layer
+		LayerPtr l = std::make_shared<Layer>(rX, rY);
+		l->name = "Preview";
+		l->opacity = 0.5f;
+		CanvasManager::obj->AddLayer(l);
 
 		if (!j.contains("layers") || !j["layers"].is_array()) {
 			DLOG("no layers");
 			return false;
 		}
 
-	for (const auto& layerJson : j["layers"]) {
-		int id = layerJson.value("id", 0);
-		std::string layer_name = layerJson.value("name", "");
-		bool visible = layerJson.value("visible", true);
-		float opacity = layerJson.value("opacity", 1.0f);
-		int blend = layerJson.value("blend", 0);
+		for (const auto& layerJson : j["layers"]) {
+			int id = layerJson.value("id", 0);
+			std::string layer_name = layerJson.value("name", "");
+			bool visible = layerJson.value("visible", true);
+			float opacity = layerJson.value("opacity", 1.0f);
+			int blend = layerJson.value("blend", 0);
 
-		
 
-		LayerPtr lp = std::make_shared<Layer>();
-		lp->id = id;
-		lp->name = layer_name;
-		lp->visible = visible;
-		lp->opacity = opacity;
-		lp->blend = (BLEND_Type) blend;
-		lp->image = std::make_shared<Image>(dataDir.string() + std::to_string(id) + ".png");
-		CanvasManager::obj->AddLayer(lp);
+
+			LayerPtr lp = std::make_shared<Layer>();
+			lp->id = id;
+			lp->name = layer_name;
+			lp->visible = visible;
+			lp->opacity = opacity;
+			lp->blend = (BLEND_Type)blend;
+			lp->image = std::make_shared<Image>(dataDir.string() + std::to_string(id) + ".png");
+			CanvasManager::obj->AddLayer(lp);
+		}
 	}
-
-	CanvasManager::obj->SetSelectedLayer(-1);//max
 	
-return false;
+
+	fullPath = targetPath.string();
+	CanvasManager::Init();//set transform to default
+	CanvasManager::obj->SetSelectedLayer(-1);//max
+	projectDataDirty = true;
+	dirty = false;
+	
+return true;
 }
 
 bool ProjectManager::New()
@@ -382,12 +523,23 @@ bool ProjectManager::New()
 	l = std::make_shared<Layer>(rX, rY);
 	CanvasManager::obj->AddLayer(l);
 
+	name = "New project";
 	CanvasManager::obj->SetSelectedLayer(-1);//max
+	CanvasManager::Init();//set transform to default
+	projectDataDirty = true;
+	dirty = false;
+
 	return false;
 }
+
 bool ProjectManager::Clear()
 {
 	CanvasManager::Clear();
 
 	return false;
+}
+
+void ProjectManager::Dirty()
+{
+	dirty = true;
 }

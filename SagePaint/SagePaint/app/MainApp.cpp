@@ -1,3 +1,5 @@
+//TODO:make the color selector different so that clicking outside it doesnt have to close it and consume the click, its annoying
+
 #include "MainApp.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -260,8 +262,14 @@ void MainApp() {
 			("FPS: " + std::to_string(displayedFPS)).c_str());
 
 		//ImGui::ShowDemoWindow();
-		
 
+		if (ProjectManager::projectDataDirty) {
+			std::string title = "Sage Paint Alpha - " + ProjectManager::name;
+			if (ProjectManager::dirty) {
+				title += " *";
+			}
+			glfwSetWindowTitle(window, title.c_str());
+		}
 		
 		
 		ImGui::Render();
@@ -272,17 +280,16 @@ void MainApp() {
 		if (glfwWindowShouldClose(window)) {
 			IDLOG("Exiting application...")
 
-				//should it end(?) logic goes here
-				//glfwSetWindowShouldClose(window, GLFW_FALSE); //use when cancelling to save modified file being opened etc.
-
-				//it should:
-			runApp = false;
+				
+				glfwSetWindowShouldClose(window, GLFW_FALSE);//remove default reaction
+				
+				runApp=ProjectManager::ExitDlgOpen();
 			}
 
 		
 	}
+
 	//destruction
-	
 	glfwDestroyWindow(window);
 
 	glfwTerminate();

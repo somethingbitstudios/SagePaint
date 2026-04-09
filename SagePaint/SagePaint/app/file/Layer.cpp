@@ -26,6 +26,11 @@ Layer::Layer(ImagePtr i) {
 	Init();
 	SetImage(i);//in case processing needs to happen, funnel all to SetImage
 }
+Layer::Layer(std::string path)
+{
+	Init();
+	SetImage(std::make_shared<Image>(path));
+}
 void Layer::SetImage(ImagePtr i) {
 	image = i;
 }

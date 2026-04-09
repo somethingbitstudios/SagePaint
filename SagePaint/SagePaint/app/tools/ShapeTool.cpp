@@ -2,6 +2,7 @@
 #include "../CanvasManager.h"
 #include <math.h>
 #include "LineTool.h"
+#include "../ProjectManager.h"
 glm::ivec2 ShapeTool::downPos = { 0,0 };
 glm::ivec2 lastUpPos1 = { 0,0 };
 unsigned int ShapeTool::pointNumber = 640;
@@ -143,5 +144,6 @@ void ShapeTool::ShapeEnd()
 	ShapeRender(image->texture, image->width, image->height, downPos, upPos, color,rectConstrained, fastRect);
 	CanvasManager::obj->Changed();
 	CanvasManager::obj->Changed(0);
+	ProjectManager::Dirty();
 
 }

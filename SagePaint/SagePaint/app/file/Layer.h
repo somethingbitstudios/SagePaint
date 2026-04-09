@@ -25,6 +25,7 @@ public:
 	Layer();
 	Layer(unsigned int x,unsigned int y);
 	Layer(ImagePtr i);
+	Layer(std::string path);
 	~Layer();
 
 	void SetImage(ImagePtr i);
