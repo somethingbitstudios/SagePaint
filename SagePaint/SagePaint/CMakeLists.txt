@@ -41,3 +41,10 @@ add_custom_command(
             $<TARGET_FILE_DIR:SagePaint>/shaders
 )
 
+add_custom_command(
+    TARGET SagePaint
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/SagePaint/icons
+            $<TARGET_FILE_DIR:SagePaint>/icons
+)

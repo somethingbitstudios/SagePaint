@@ -7,6 +7,7 @@ enum CursorFocus {
 
 class UIManager {
 public:
+	static void Init();
 	static void SetCursorFocus(CursorFocus c);
 	static CursorFocus GetCursorFocus();
 	static bool ShowUI();

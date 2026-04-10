@@ -6,6 +6,32 @@
 #include "../ProjectManager.h"
 
 CursorFocus UIManager::cursor_focus = FOCUS_CANVAS;
+std::vector<ImTextureID> icons;
+void AddIcon(std::string path) {
+	GLuint texId;
+	ImagePtr image = std::make_shared<Image>(path);
+
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
+
+	icons.push_back((void*)(intptr_t)texId);
+}
+void UIManager::Init() {
+	AddIcon("./icons/tool_pencil40.png");
+	AddIcon("./icons/tool_line40.png");
+	AddIcon("./icons/tool_shape40.png");
+	AddIcon("./icons/tool_fill40.png");
+	AddIcon("./icons/tool_select40.png");
+}
 void UIManager::SetCursorFocus(CursorFocus c)
 {
 	cursor_focus = c;
@@ -36,16 +62,60 @@ bool UIManager::ShowUI()
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
 	ImGui::Text("Tools:");
-	if (ImGui::Button("Pencil"))
+	if (ImGui::ImageButton(
+		"SetToPencilButton",
+		icons[0],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
 		ToolManager::SetTool(TOOL_PENCIL);
-	if (ImGui::Button("Line"))
+	}
+	ImGui::SameLine();
+	if (ImGui::ImageButton(
+		"SetToLineButton",
+		icons[1],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
 		ToolManager::SetTool(TOOL_LINE);
-	if (ImGui::Button("Shape"))
+	}
+	ImGui::SameLine();
+	if (ImGui::ImageButton(
+		"SetToShapeButton",
+		icons[2],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
 		ToolManager::SetTool(TOOL_SHAPE);
-	if (ImGui::Button("Fill"))
+	}
+	ImGui::SameLine();
+	if (ImGui::ImageButton(
+		"SetToFillButton",
+		icons[3],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
 		ToolManager::SetTool(TOOL_FILL);
-	if (ImGui::Button("Select"))
+	}
+	if (ImGui::ImageButton(
+		"SetToSelectButton",
+		icons[4],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
 		ToolManager::SetTool(TOOL_SELECT);
+	}
+
 	ImGui::End();
 
 

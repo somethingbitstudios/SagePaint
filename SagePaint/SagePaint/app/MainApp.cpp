@@ -43,9 +43,9 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 
 void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
-		IDLOG("IMPORTANT IDLOG MESSAGES ENABLED")
-		DLOG("GRANULAR DLOG MESSAGES ENABLED")
-		IDLOG("version: 0.64\n")
+	IDLOG("IMPORTANT IDLOG MESSAGES ENABLED")
+	DLOG("GRANULAR DLOG MESSAGES ENABLED")
+	IDLOG("version: 0.64\n")
 
 
 
@@ -97,6 +97,8 @@ void MainApp() {
 	go = CanvasManager::obj;
 
 	//ProjectManager::Open("C:\\temp\\new.sagepaint"); //recent?
+	UIManager::Init();
+
 	ProjectManager::New();
 
 	/*

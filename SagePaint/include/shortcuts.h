@@ -1,6 +1,7 @@
 #ifndef MY_SHORTCUTS
 #define MY_SHORTCUTS
 
+
 #define MY_SQRT_2 sqrt(2)
 
 
