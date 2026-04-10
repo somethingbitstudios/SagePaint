@@ -162,7 +162,7 @@ CanvasModel::~CanvasModel() {
 	}
 }
 CanvasModel::CanvasModel() :Model() {
-	
+	selected_layer = -1;
 	if (instance_count++==0) {
 		glGenBuffers(1, &vertex_buffer);
 		glGenBuffers(1, &index_buffer);
