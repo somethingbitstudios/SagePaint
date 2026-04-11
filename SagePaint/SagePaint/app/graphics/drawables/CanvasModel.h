@@ -22,14 +22,19 @@ class CanvasModel : public Model {
 public:
 	void Draw(glm::mat4 m, glm::mat4 p) override;
 	CanvasModel();
+	void DrawFbo();
 	~CanvasModel();
 	void SetImage(ImagePtr i);//deprecated
 
 	void SetLayerVector(std::shared_ptr<std::vector<LayerPtr>> v);
+	void DeleteFBO();
+	void CreateFBO();
+	void ResChange(unsigned int rX, unsigned int rY);
 	void InitLayer(int index);
 
 	void Discard(int index);
 	void SendLayerToGpu(int index);
+	void SendLayerToGpuNoFbo(int index);//private!
 	void SendLayersToGpu();
 	/*
 	void SwapLayerUp(int index);
@@ -42,6 +47,7 @@ public:
 	ImagePtr image;//deprecate?
 	std::shared_ptr<std::vector<LayerPtr>> layers;
 	unsigned int selected_layer;
+	unsigned int resX,resY;
 };
 
 typedef std::shared_ptr<CanvasModel> CanvasModelPtr;

@@ -82,6 +82,13 @@ void CanvasObject::SetZoom(float zoom,float forceNearestThreshold) {
 	model->SetZoom(zoom,forceNearestThreshold);
 }
 
+void CanvasObject::ResChange(unsigned int rX, unsigned int rY)
+{
+	resX = rX;
+	resY = rY;
+	model->ResChange(rX, rY);
+}
+
 void CanvasObject::SwapLayerUp(int index) {
 	if (index >= 0 && index < layers->size()-1) {
 		LayerPtr temp = (*layers)[index+1];

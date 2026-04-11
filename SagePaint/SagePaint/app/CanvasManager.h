@@ -17,6 +17,7 @@ public:
 	static void ZoomOut();
 	static void ZoomIn();
 	static void Clear();
+	static void ResChange(unsigned int rX, unsigned int rY);
 	static CanvasObjectPtr obj; 
 	static float color[4];
 	static float backgroundColor[4];

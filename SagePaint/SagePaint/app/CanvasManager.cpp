@@ -38,6 +38,10 @@ void CanvasManager::Clear() {
 	if (obj->resY < 1)obj->resY = 400;
 
 }
+void CanvasManager::ResChange(unsigned int rX, unsigned int rY )
+{
+	obj->ResChange(rX,rY);
+}
 CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }
 
 void CanvasManager::UpdateRelativeCursorPos() {

@@ -514,6 +514,7 @@ bool ProjectManager::New()
 	rX = CanvasManager::obj->resX;
 	rY = CanvasManager::obj->resY;
 	Clear();
+	CanvasManager::ResChange(rX,rY);
 	//...
 	LayerPtr l = std::make_shared<Layer>(rX, rY);
 	l->name = "Preview";

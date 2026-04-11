@@ -23,6 +23,9 @@ static GLuint uv_buffer;
 //static std::vector<GLuint> textures;
 static GLuint texture;
 
+static GLuint fbo;
+static GLuint compositeTexture;
+
 void CanvasModel::Changed() {
 	SendLayerToGpu(selected_layer);
 }
@@ -47,6 +50,8 @@ void CanvasModel::SwapLayerDown(int index) {
 */
 void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	//DLOG(fmod(zoom,1.f))
+
+	glBindTexture(GL_TEXTURE_2D, compositeTexture);
 	if (
 		zoom >= forceNearestThreshold ||
 		fmod(zoom,1.0f)<0.001f //integer scaling
@@ -71,17 +76,49 @@ void CanvasModel::SetLayerVector(std::shared_ptr<std::vector<LayerPtr>> v) {
 	}
 	
 }
+
+void CanvasModel::ResChange(unsigned int rX, unsigned int rY) {
+	if (resX != rX || resY != rY) {
+		resX = rX; resY = rY;
+		DeleteFBO();
+		CreateFBO();
+	}
+	
+}
+void CanvasModel::DeleteFBO() {
+
+}
+void CanvasModel::CreateFBO() {
+	
+	
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	glGenTextures(1, &compositeTexture);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resX, resY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, compositeTexture, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		IDLOG("ERROR: fbo error")
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	DrawFbo();
+}
 void CanvasModel::InitLayer(int index){
 
-	//textures.push_back((GLuint)0);
-	//int index = (*layers).size() - 1;
-
-
+	
 	glGenTextures(1, &(*layers)[index]->textureId);
 	glBindTexture(GL_TEXTURE_2D, (*layers)[index]->textureId);
 
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//GL_LINEAR_MIPMAP_LINEAR if gpu scaling before the fbo
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -90,7 +127,7 @@ void CanvasModel::InitLayer(int index){
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (*layers)[index]->image->width, (*layers)[index]->image->height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, (*layers)[index]->image->texture);
 	
-	glGenerateMipmap(GL_TEXTURE_2D);
+	//glGenerateMipmap(GL_TEXTURE_2D); only if gpu scaling before fbo
 
 	//TODO: make this not like that this is bad because it means the grid depends on last added layer
 	scale_inverse_aspect_ratio = (*layers)[index]->image->height / (float)(*layers)[index]->image->width;
@@ -112,12 +149,25 @@ void CanvasModel::SendLayerToGpu(int index) {
 		i->width, i->height,
 		GL_RGBA, GL_UNSIGNED_BYTE, i->texture);
 	
-	glGenerateMipmap(GL_TEXTURE_2D);
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	DrawFbo();
+}
+void CanvasModel::SendLayerToGpuNoFbo(int index) {
+	ImagePtr i = (*layers)[index]->image;
+	glBindTexture(GL_TEXTURE_2D, (*layers)[index]->textureId);
+
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+		i->width, i->height,
+		GL_RGBA, GL_UNSIGNED_BYTE, i->texture);
+
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	DrawFbo();
 }
 void CanvasModel::SendLayersToGpu() {
 	for (int i = 0; i < layers->size(); i++) {
-		SendLayerToGpu(i);
+		SendLayerToGpuNoFbo(i);
 	}
+	DrawFbo();
 }
 
 void CanvasModel::SetImage(ImagePtr i) {
@@ -164,6 +214,7 @@ CanvasModel::~CanvasModel() {
 CanvasModel::CanvasModel() :Model() {
 	selected_layer = -1;
 	if (instance_count++==0) {
+
 		glGenBuffers(1, &vertex_buffer);
 		glGenBuffers(1, &index_buffer);
 		glGenBuffers(1, &uv_buffer);
@@ -230,98 +281,72 @@ CanvasModel::CanvasModel() :Model() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-
-		
-
-		
-
 		/*glEnableVertexAttribArray(vcol_location);
 		glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
 			sizeof(Vertex), (void*)offsetof(Vertex, col));
 			*/
-
-
-
-
 	}
 
+}
+void CanvasModel::DrawFbo() {
+
+	//fbo render
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glViewport(0, 0, resX, resY);
+
+	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(program);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE0);
+	texLoc = glGetUniformLocation(program, "tex");
+	GLuint opacityLoc = glGetUniformLocation(program, "opacity");
+
+	glUniform1i(texLoc, 0);
+	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
+
+	glm::mat4 mvp_fbo = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+
+	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp_fbo);
+
+	glBindVertexArray(vertex_array);
+
+	for (size_t i = 1; i < (*layers).size(); i++)
+	{
+		if ((*layers)[i]->visible) {
+			glBindTexture(GL_TEXTURE_2D, (*layers)[i]->textureId);
+			glUniform1f(opacityLoc, (*layers)[i]->opacity);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		}
+	}
+
+	glBindTexture(GL_TEXTURE_2D, compositeTexture);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, Screen_width, Screen_height);
 }
 void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	//color changing
 	//vertices[0].col = { abs(sin((float)glfwGetTime())),abs(cos((float)glfwGetTime())),0 };
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	Model::Draw(m, p);//NEEDED?
-
-	glm::mat4 mvp;
+	Model::Draw(m, p);
 
 
 
+	//1
 
-	mvp = p * m;
+	GLuint opacityLoc = glGetUniformLocation(program, "opacity");
+	glm::mat4 mvp_screen = p * m;
+	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp_screen);
 
-	glUseProgram(program);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture);
 
-	//i have "layers" (usage: layers[0]->texture gives bitmap, ->width etc)
-	//i have textures (std::vector<GLuint>) that layers are bound to
-	//draw all of the layers on top of each other here
+	glUniform1f(opacityLoc, 1.0f);
 
-	//glDisable(GL_DEPTH_TEST);
-
-
-	glEnable(GL_BLEND);
-	//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glActiveTexture(GL_TEXTURE0);   
-	//glBindTexture(GL_TEXTURE_2D, texture);
-
-
-	texLoc = glGetUniformLocation(program, "tex");
-
-	GLuint opacityLoc = glGetUniformLocation(program, "opacity"); 
-
-	//send uniform to shader
-	glUniform1i(texLoc, 0);
-
-	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
-
-
-	//GLint texSizeLoc = glGetUniformLocation(program, "texSize");
-	//glUniform2f(texSizeLoc, (float)image->width, (float)image->height);
-	//GLint screenSizeLoc = glGetUniformLocation(program, "screenSize");
-	//glUniform2f(screenSizeLoc, (float)Screen_width, (float)Screen_height);
-
-
-	//consider using 'Uniform buffer objects'(?idk, meh) if there are too many uniforms
-	
-
-
-
-	
-	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
-
-	//float time_ms = (float)(glfwGetTime());
-	//glUniform1f(time_location, time_ms);
-
-	glBindVertexArray(vertex_array);
-	for (size_t i = 1; i < (*layers).size(); i++)
-	{
-		//TODO send opacity to layer if visible
-		if ((*layers)[i]->visible) {
-			glBindTexture(GL_TEXTURE_2D, (*layers)[i]->textureId);
-			glUniform1f(opacityLoc, (*layers)[i]->opacity);
-
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		}
-	}
-	//preview
-	if (layers->size()>0&&(*layers)[0]->visible) {
-		glBindTexture(GL_TEXTURE_2D, (*layers)[0]->textureId);
-		glUniform1f(opacityLoc, (*layers)[0]->opacity);
-
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-	}
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

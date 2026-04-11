@@ -19,7 +19,7 @@ public:
 	void Changed();
 	void Changed(unsigned int layer);
 	void SetZoom(float zoom, float forceNearestThreshold);
-
+	void ResChange(unsigned int rX, unsigned int rY);
 	CanvasModelPtr model;
 
 	//deprecated
