@@ -18,6 +18,7 @@ public:
 	std::string name;
 	bool visible;
 	float opacity;
+	int blendCandidate;
 	BLEND_Type blend;
 
 	GLuint textureId;

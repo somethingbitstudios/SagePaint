@@ -6,6 +6,7 @@
 #include "imgui_impl_opengl3.h"
 #include "./tools/ToolManager.h"
 #include "ui/UIManager.h"
+#include "graphics/ShaderManager.h"
 //InputManagerPtr inputManager = std::make_shared<InputManager>();
 //CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
@@ -92,6 +93,7 @@ void MainApp() {
 
 
 	InputManager::Init();
+	ShaderManager::Init();
 	//'start()'
 	CanvasManager::obj= std::make_shared<CanvasObject>();
 	go = CanvasManager::obj;

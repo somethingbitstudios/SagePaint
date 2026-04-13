@@ -55,7 +55,7 @@ bool UIManager::ShowUI()
 	//show the ui
 
 	ImGui::SetNextWindowPos(ImVec2(0, 18));
-	ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y - 18));
+	ImGui::SetNextWindowSize(ImVec2(232, ImGui::GetIO().DisplaySize.y - 18));
 
 	ImGui::Begin("LeftMenu", nullptr,
 		ImGuiWindowFlags_NoResize |
@@ -119,8 +119,8 @@ bool UIManager::ShowUI()
 	ImGui::End();
 
 
-	ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 250, 18));
-	ImGui::SetNextWindowSize(ImVec2(250, ImGui::GetIO().DisplaySize.y - 18));
+	ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 300, 18));
+	ImGui::SetNextWindowSize(ImVec2(300, ImGui::GetIO().DisplaySize.y - 18));
 	ImGui::Begin("RightMenu", nullptr,
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
@@ -134,6 +134,17 @@ bool UIManager::ShowUI()
 	for (int i = CanvasManager::obj->layers->size() - 1; i >= 0; i--) {
 		ImGui::PushID(i);
 
+		if (CanvasManager::obj->selectedLayer == i) {
+			// Get the current screen position and available width
+			ImVec2 cursor = ImGui::GetCursorScreenPos();
+			ImVec2 p_min = ImVec2(cursor.x-10,cursor.y-3);
+			ImVec2 p_max = ImVec2(p_min.x + ImGui::GetContentRegionAvail().x, p_min.y + ImGui::GetFrameHeight()*2+10);
+
+			// Draw a grey rectangle (RGBA: 128, 128, 128, 255)
+			ImU32 bg_color = IM_COL32(255, 0, 255, 32);
+			ImGui::GetWindowDrawList()->AddRectFilled(p_min, p_max, bg_color);
+		}
+
 		if (ImGui::Button((*CanvasManager::obj->layers)[i]->name.c_str()))
 		{
 			CanvasManager::obj->selectedLayer = i;
@@ -146,6 +157,15 @@ bool UIManager::ShowUI()
 		if (ImGui::Button(CanvasManager::obj->GetVisible(i) ? "Hide" : "Show"))
 		{
 			CanvasManager::obj->ToggleVisible(i);
+
+		}
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(56);
+		if (ImGui::InputFloat("", &(*CanvasManager::obj->layers)[i]->opacity))
+		{
+			CanvasManager::OpacityChanged(i);
+			//(*CanvasManager::obj->layers)[i]->opacity = std::max(0.0f, std::min(1.0f, (*CanvasManager::obj->layers)[i]->opacity));
 
 		}
 		ImGui::SameLine();
@@ -171,17 +191,14 @@ bool UIManager::ShowUI()
 
 		}
 
+		const char* blend_modes[] = { "Normal", "Darken", "Lighten" };
 
-		if (CanvasManager::obj->selectedLayer == i) {
+		if (ImGui::Combo("Blend", &((*CanvasManager::obj->layers)[i]->blendCandidate), blend_modes, IM_ARRAYSIZE(blend_modes))) {
 
-			ImGui::SameLine(); ImGui::Text("*");
+			CanvasManager::ChangeBlendMode(i);
 		}
 
-		if (ImGui::InputFloat("", &(*CanvasManager::obj->layers)[i]->opacity))
-		{
-			(*CanvasManager::obj->layers)[i]->opacity = std::max(0.0f, std::min(1.0f, (*CanvasManager::obj->layers)[i]->opacity));
-
-		}
+		
 		ImGui::PopID();
 	}
 	if (ImGui::Button("New Layer")) {

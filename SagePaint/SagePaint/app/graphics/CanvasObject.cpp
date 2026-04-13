@@ -43,7 +43,15 @@ void CanvasObject::AddLayer(LayerPtr l){
 
 
 }
-
+void CanvasObject::ChangeBlendMode(unsigned int i)
+{
+	BLEND_Type bl = (BLEND_Type)(*layers)[i]->blendCandidate;
+	if ((*layers)[i]->blend != bl) {
+		(*layers)[i]->blend = bl;
+		model->Changed(i);
+	}
+	
+}
 void CanvasObject::SetSelectedLayer(int i)
 {
 	if (i < 0)i += layers->size();
@@ -130,6 +138,7 @@ void CanvasObject::SwapLayerDown(int index) {
 
 void CanvasObject::ToggleVisible(int index) {//TODO: add check to all index based functions
 	(*layers)[index]->visible = !(*layers)[index]->visible;
+	model->DrawFbo();
 }
 bool CanvasObject::GetVisible(int index) {//TODO: add check to all index based functions
 	return (*layers)[index]->visible;
@@ -157,6 +166,7 @@ void CanvasObject::Remove(int index) {
 	//layers remove
 	(*layers).erase((*layers).begin() + index);
 	//(*layers)[index]->visible = !(*layers)[index]->visible;
+	model->DrawFbo();
 }
 void CanvasObject::AddLayer() {
 	AddLayer(std::make_shared<Image>(640, 400));

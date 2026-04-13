@@ -22,6 +22,7 @@ public:
 	void ResChange(unsigned int rX, unsigned int rY);
 	CanvasModelPtr model;
 
+	void ChangeBlendMode(unsigned int i);
 	//deprecated
 	ImagePtr image;
 

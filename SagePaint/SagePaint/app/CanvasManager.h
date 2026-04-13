@@ -13,11 +13,13 @@ public:
 	static void UpdateRelativeCursorPos();
 	static inline glm::ivec2 GetRelativeCursorPos() { return relativeCursorPos; }
 	static inline glm::ivec2 GetLastRelativeCursorPos() { return lastRelativeCursorPos; }
+	static void OpacityChanged(unsigned int i);
 	static CanvasObjectPtr GetCanvas();
 	static void ZoomOut();
 	static void ZoomIn();
 	static void Clear();
 	static void ResChange(unsigned int rX, unsigned int rY);
+	static void ChangeBlendMode(unsigned int i);
 	static CanvasObjectPtr obj; 
 	static float color[4];
 	static float backgroundColor[4];

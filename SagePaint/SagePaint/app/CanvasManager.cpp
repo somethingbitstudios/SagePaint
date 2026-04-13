@@ -42,6 +42,16 @@ void CanvasManager::ResChange(unsigned int rX, unsigned int rY )
 {
 	obj->ResChange(rX,rY);
 }
+
+void CanvasManager::ChangeBlendMode(unsigned int i)
+{
+	obj->ChangeBlendMode(i);
+}
+
+void CanvasManager::OpacityChanged(unsigned int i) {
+	(*CanvasManager::obj->layers)[i]->opacity = std::max(0.0f, std::min(1.0f, (*CanvasManager::obj->layers)[i]->opacity));
+	obj->Changed(i);
+}
 CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }
 
 void CanvasManager::UpdateRelativeCursorPos() {

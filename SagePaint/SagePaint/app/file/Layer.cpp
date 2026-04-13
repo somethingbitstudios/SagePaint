@@ -7,6 +7,7 @@ void Layer::Init() {
 	name = "Layer " + std::to_string(layerCount++);
 	visible = true;
 	opacity = 1.0f;
+	blendCandidate = 0;
 	blend = BLEND_Normal;
 	textureId = 0;
 	id = layerCount;

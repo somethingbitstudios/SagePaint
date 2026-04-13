@@ -1,18 +1,15 @@
-#version 330
+#version 430 core
 out vec4 fragment;
 in vec2 TexCoord;
 in vec2 CanvasXAndInverseAspectRatio;
 uniform sampler2D tex;
-uniform float opacity;
+//uniform float opacity;
 uniform vec2 texSize;
 void main()
 {
-//TODO: add ability to switch to fragment that doesn't draw the grid
     vec4 texel = texture(tex, TexCoord);
-    texel.a *=opacity;
-    fragment = texel;
-    return;
-    // Grid scale (number of cells)
+   
+    // checkerboard scale
     float scaleX = texSize.x;
     float aspectRatio =  texSize.y;
 

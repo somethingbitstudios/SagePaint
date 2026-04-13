@@ -1,5 +1,7 @@
 #include "CanvasModel.h"
 #include "../../CanvasManager.h"
+#include "../Shader.h"
+#include "../ShaderManager.h"
 
 
 
@@ -8,11 +10,16 @@ static std::string fragment_shader_text;
 
 static unsigned int instance_count = 0;
 
-static GLuint program;
+//static GLuint program;
 static GLuint vertex_array;
 static GLuint vertex_buffer;
-static GLuint mvp_location;
+//static GLuint mvp_location;
+
 static GLint texLoc;
+
+const GLuint POS_LOCATION = 0;
+const GLuint UV_LOCATION = 1;
+const GLuint MVP_LOCATION = 0;
 
 static GLuint scale_location;
 static float scale_width;
@@ -26,6 +33,8 @@ static GLuint texture;
 static GLuint fbo;
 static GLuint compositeTexture;
 
+static ShaderProgramPtr shader_composite_normal;
+static ShaderProgramPtr shader_final;
 void CanvasModel::Changed() {
 	SendLayerToGpu(selected_layer);
 }
@@ -203,7 +212,7 @@ CanvasModel::~CanvasModel() {
 
 	if (instance_count == 0) {
 		glDeleteVertexArrays(1, &vertex_array);
-		glDeleteProgram(program);
+		//glDeleteProgram(shader_composite_normal->id);
 		glDeleteBuffers(1, &vertex_buffer);
 		glDeleteBuffers(1, &index_buffer);
 		glDeleteBuffers(1, &uv_buffer);
@@ -211,6 +220,10 @@ CanvasModel::~CanvasModel() {
 
 	}
 }
+void InitShader(ShaderProgramPtr prog) {
+
+}
+
 CanvasModel::CanvasModel() :Model() {
 	selected_layer = -1;
 	if (instance_count++==0) {
@@ -219,55 +232,31 @@ CanvasModel::CanvasModel() :Model() {
 		glGenBuffers(1, &index_buffer);
 		glGenBuffers(1, &uv_buffer);
 
-		vertex_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.vert");
-		const char* srcVert = vertex_shader_text.c_str();
-		//DLOG("scr vert:")
-		//DLOG(srcVert)
-		const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertex_shader, 1, &srcVert, NULL);
-		glCompileShader(vertex_shader);
-		 
-		fragment_shader_text = FileManager::LoadTextFile("./shaders/canvas/shader.frag");
-		const char* srcFrag = fragment_shader_text.c_str();
-		 
-		const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragment_shader, 1, &srcFrag, NULL);
-		glCompileShader(fragment_shader);
+ 		shader_composite_normal = ShaderManager::Get("CANVAS_COMPOSITE_NORMAL");
+	
+		shader_final = ShaderManager::Get("CANVAS_FINAL");
 
-		program = glCreateProgram();
-		glAttachShader(program, vertex_shader);
-		glAttachShader(program, fragment_shader);
-		glLinkProgram(program);
 
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
+		scale_location = glGetUniformLocation(shader_final->id, "texSize");
 
-		mvp_location = glGetUniformLocation(program, "MVP");
-		scale_location = glGetUniformLocation(program, "texSize");
-		//time_location = glGetUniformLocation(program, "time");
-
-		const GLint vpos_location = glGetAttribLocation(program, "vPos");
-		const GLint uvpos_location = glGetAttribLocation(program, "vTex");
-		//const GLint vcol_location = glGetAttribLocation(program, "vCol");
 
 		glGenVertexArrays(1, &vertex_array);
 		glBindVertexArray(vertex_array);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		glEnableVertexAttribArray(vpos_location);
-		glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
-			sizeof(GLfloat) * 3, (void*)0);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
-
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rect_indices), rect_indices, GL_STATIC_DRAW);
 
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(POS_LOCATION);
+		glVertexAttribPointer(POS_LOCATION, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, (void*)0);
+
 		glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(rect_uv), rect_uv, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(UV_LOCATION);
+		glVertexAttribPointer(UV_LOCATION, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 2, (void*)0);
 
-		glEnableVertexAttribArray(uvpos_location);
-		glVertexAttribPointer(uvpos_location, 2, GL_FLOAT, GL_FALSE,
-			sizeof(GLfloat) * 2, (void*)0);
+		glBindVertexArray(0);
 
 
 
@@ -281,10 +270,7 @@ CanvasModel::CanvasModel() :Model() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		/*glEnableVertexAttribArray(vcol_location);
-		glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-			sizeof(Vertex), (void*)offsetof(Vertex, col));
-			*/
+		
 	}
 
 }
@@ -294,33 +280,44 @@ void CanvasModel::DrawFbo() {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, resX, resY);
 
-	glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(program);
+
+
+
+	glUseProgram(shader_composite_normal->id);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glActiveTexture(GL_TEXTURE0);
-	texLoc = glGetUniformLocation(program, "tex");
-	GLuint opacityLoc = glGetUniformLocation(program, "opacity");
+	texLoc = glGetUniformLocation(shader_composite_normal->id, "tex");
+	GLuint opacityLoc = glGetUniformLocation(shader_composite_normal->id, "opacity");
 
 	glUniform1i(texLoc, 0);
 	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
 
 	glm::mat4 mvp_fbo = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
 
-	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp_fbo);
+	glUniformMatrix4fv(MVP_LOCATION, 1, GL_FALSE, (const GLfloat*)&mvp_fbo);
 
 	glBindVertexArray(vertex_array);
-
+	
 	for (size_t i = 1; i < (*layers).size(); i++)
 	{
 		if ((*layers)[i]->visible) {
+
 			glBindTexture(GL_TEXTURE_2D, (*layers)[i]->textureId);
 			glUniform1f(opacityLoc, (*layers)[i]->opacity);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		}
+	}
+
+	if ((*layers).size()>0 && (*layers)[0]->visible) {
+		glBindTexture(GL_TEXTURE_2D, (*layers)[0]->textureId);
+		glUniform1f(opacityLoc, (*layers)[0]->opacity);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
 
 	glBindTexture(GL_TEXTURE_2D, compositeTexture);
@@ -338,15 +335,15 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 
 
 
-	//1
+	glUseProgram(shader_final->id);
 
-	GLuint opacityLoc = glGetUniformLocation(program, "opacity");
+	
 	glm::mat4 mvp_screen = p * m;
-	glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp_screen);
+	glUniformMatrix4fv(MVP_LOCATION, 1, GL_FALSE, (const GLfloat*)&mvp_screen);
+	glUniform2f(scale_location, (float)resX,resY / (float)resX);
 
 	glBindTexture(GL_TEXTURE_2D, compositeTexture);
 
-	glUniform1f(opacityLoc, 1.0f);
-
+	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
