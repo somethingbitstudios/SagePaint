@@ -22,6 +22,7 @@ public:
 	InputManager();
 	~InputManager();
 	static void Init();
+	static void ShowUI();
 	static void LoadInputMap(std::string path); //json?
 	static void UpdateCursorPos(GLFWwindow* window);
 	static void SetCursorPos(float x,float y);
@@ -30,6 +31,8 @@ public:
 	static void SetContext(Key_Context_Enum keyContext);
 	static inline glm::vec2 GetCursorPos() { return glm::vec2 { cursorX.load(), cursorY.load()}; }
 	static inline glm::vec2 GetCursorDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
+
+	static const char* GetGLFWKeyName(int key);
 
 	static inline float GetCursorX() { return cursorX; }
 	static inline float GetCursorXDelta() { return cursorX-cursorXold; }

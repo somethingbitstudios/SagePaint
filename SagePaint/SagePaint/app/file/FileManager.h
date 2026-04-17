@@ -4,6 +4,7 @@ class FileManager { //might not be a good idea for it to be a class, will make i
 public:
 	FileManager();
 	~FileManager();
+	static void WriteImage(std::string path, unsigned char* img, int width, int height);
 	static unsigned char * LoadImage(std::string filepath,int *width,int * height);
 	static unsigned char * LoadImagePlus(std::string filepath,int *width,int * height, int * numOfChannels,int requestedChannelNum);
 	static const std::string LoadTextFile(std::string filepath);

@@ -34,8 +34,11 @@ public:
 
 	void Discard(int index);
 	void SendLayerToGpu(int index);
-	void SendLayerToGpuNoFbo(int index);//private!
+	void SendLayerToGpuNoFbo(int index);
+	void SendLayerToGpuNoFboResized(int index);
+	//private!
 	void SendLayersToGpu();
+	void SendResizedToGpu();
 	/*
 	void SwapLayerUp(int index);
 	void SwapLayerDown(int index);
@@ -43,9 +46,10 @@ public:
 	void SetZoom(float zoom, float forceNearestThreshold); //this will update the filtering 
 	void Changed()override;
 	void Changed(unsigned int i);
-
+	ImagePtr Export();
 	ImagePtr image;//deprecate?
 	std::shared_ptr<std::vector<LayerPtr>> layers;
+	ImagePtr compositeImage;
 	unsigned int selected_layer;
 	unsigned int resX,resY;
 };

@@ -114,6 +114,11 @@ bool InputMap::Action(int key, int action, int mods) {
 	
 	return true;//true -> ok'd, false -> blocked
 }
+KeyAction InputMap::GetKey(int key)
+{
+	return keyMap[key];
+}
+
 //will be better for the default config because it's faster
 void InputMap::InitKeyFunction(KeyFunction *kf,int priority,Key_Context_Enum context,int functionNumber) {
 	kf->priority = priority;
@@ -123,7 +128,7 @@ void InputMap::InitKeyFunction(KeyFunction *kf,int priority,Key_Context_Enum con
 		kf->func = inputFunctions[functionNumber].func;
 	}
 }
-void InputMap::InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum context, std::string functionName) {
+void InputMap::InitKeyFunction(int key,int state,KeyFunction* kf, int priority, Key_Context_Enum context, std::string functionName) {
 
 	
 
@@ -133,6 +138,17 @@ void InputMap::InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum c
 	for (int i = 0; i < size; i++) {
 		if (inputFunctions[i].name == functionName) {
 			kf->func = inputFunctions[i].func;
+			switch (state) {
+			case 0:
+				inputFunctions[i].key.push_back(key);
+				break;
+			case 1:
+				inputFunctions[i].keyHold.push_back(key);
+				break;
+			case 2:
+				inputFunctions[i].keyUp.push_back(key);
+				break;
+			}
 		}
 	}
 }
@@ -149,27 +165,27 @@ void InputMap::Default(int defaultType) {
 		
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = true; //not additive, override = specific actions prevent default behaviour of PointerX
 		
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "PointerDown");
+		InitKeyFunction(GLFW_MOUSE_BUTTON_LEFT,0,&a, 0, KEY_CONTEXT_DEFAULT, "PointerDown");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Pointer");
+		InitKeyFunction(GLFW_MOUSE_BUTTON_LEFT, 1, &a, 0, KEY_CONTEXT_DEFAULT, "Pointer");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcsHold.emplace_back(a);
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "PointerUp");
+		InitKeyFunction(GLFW_MOUSE_BUTTON_LEFT, 2, &a, 0, KEY_CONTEXT_DEFAULT, "PointerUp");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcsRelease.emplace_back(a);
 
-
+		
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].mode = true; //not additive, override
 
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "Drag");
+		InitKeyFunction(GLFW_MOUSE_BUTTON_RIGHT, 1, &a, 0, KEY_CONTEXT_DEFAULT, "Drag");
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].funcsHold.emplace_back(a);
 
 		keyMap[GLFW_KEY_W].mode = true; //not additive, override
 
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "ZoomOut");
+		InitKeyFunction(GLFW_KEY_W, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomOut");
 		keyMap[GLFW_KEY_W].funcs.emplace_back(a);
 
 		keyMap[GLFW_KEY_S].mode = true; //not additive, override
 
-		InitKeyFunction(&a, 0, KEY_CONTEXT_DEFAULT, "ZoomIn");
+		InitKeyFunction(GLFW_KEY_S, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomIn");
 		keyMap[GLFW_KEY_S].funcs.emplace_back(a);
 
 		break;

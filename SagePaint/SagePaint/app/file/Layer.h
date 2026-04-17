@@ -4,10 +4,10 @@
 enum BLEND_Type
 {
 	BLEND_Normal,
-	BLEND_Add,
-	BLEND_Multiply,
 	BLEND_Darken,
-	BLEND_Lighten
+	BLEND_Lighten,
+	BLEND_Add,
+	BLEND_Multiply
 };
 
 class Layer {

@@ -1,6 +1,7 @@
 #include "CanvasManager.h"
 #include "shortcuts.h"
 unsigned char CanvasManager::transparent[4] = { 0,0,0,0 };
+unsigned char CanvasManager::erasePreviewColor[4] = { 90,0,255,255 };
 
 CanvasObjectPtr CanvasManager::obj = nullptr;
 
@@ -12,12 +13,19 @@ float CanvasManager::zoomRateMultiplicative = MY_SQRT_2;
 
 float CanvasManager::scalingNonIntUseLinearThreshold = 2;
 
-float CanvasManager::color[4] = { 0.0f,0.0f,0.0f,1.0f };
+float CanvasManager::colorFloat[4] = { 0.0f,0.0f,0.0f,1.0f };
+unsigned char CanvasManager::color[4] = { 0,0,0,255 };
 float CanvasManager::backgroundColor[4] = { 0.1f,0.05f,0.1f,1 };
+int CanvasManager::initialWidth = 640;
+int CanvasManager::initialHeight = 400;
+int CanvasManager::canvasFilteringInt = 0;
+CanvasFilteringMode CanvasManager::canvasFiltering = NEAREST;
+
+
 glm::ivec2 CanvasManager::relativeCursorPos = { 0,0 };
 glm::ivec2 CanvasManager::lastRelativeCursorPos = { 0,0 };
 
-
+bool CanvasManager::erase = false;
 void CanvasManager::Init() {
 	zoom = 1.f;
 	obj->SetZoom(zoom, scalingNonIntUseLinearThreshold);
@@ -38,8 +46,12 @@ void CanvasManager::Clear() {
 	if (obj->resY < 1)obj->resY = 400;
 
 }
-void CanvasManager::ResChange(unsigned int rX, unsigned int rY )
+void CanvasManager::Crop(int x, int y, int oX, int oY) {
+	obj->Crop(x, y, oX, oY);
+}
+void CanvasManager::ResChange(unsigned int rX, unsigned int rY)
 {
+	
 	obj->ResChange(rX,rY);
 }
 
@@ -48,9 +60,24 @@ void CanvasManager::ChangeBlendMode(unsigned int i)
 	obj->ChangeBlendMode(i);
 }
 
+void CanvasManager::Export(std::string path)
+{
+	ImagePtr res = obj->Export();//fbo yoink
+
+	//file manager save
+	FileManager::WriteImage(path, res->texture, res->width, res->height);
+}
+
 void CanvasManager::OpacityChanged(unsigned int i) {
 	(*CanvasManager::obj->layers)[i]->opacity = std::max(0.0f, std::min(1.0f, (*CanvasManager::obj->layers)[i]->opacity));
 	obj->Changed(i);
+}
+void CanvasManager::UpdateColor()
+{
+	color[0] = colorFloat[0] * 255;
+	color[1] = colorFloat[1] * 255;
+	color[2] = colorFloat[2] * 255;
+	color[3] = colorFloat[3] * 255;
 }
 CanvasObjectPtr CanvasManager::GetCanvas() { return CanvasManager::obj; }
 

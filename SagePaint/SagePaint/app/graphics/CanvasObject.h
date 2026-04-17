@@ -20,6 +20,9 @@ public:
 	void Changed(unsigned int layer);
 	void SetZoom(float zoom, float forceNearestThreshold);
 	void ResChange(unsigned int rX, unsigned int rY);
+	void Crop(int x, int y, int ox, int oy);
+	void SetZoomCached();
+	ImagePtr Export();
 	CanvasModelPtr model;
 
 	void ChangeBlendMode(unsigned int i);

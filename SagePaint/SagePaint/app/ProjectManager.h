@@ -4,6 +4,7 @@ class ProjectManager {
 public:
 	static bool dirty;
 	static std::string name;
+	static std::string description;
 	static std::string fullPath;
 	static bool projectDataDirty;
 	static bool ShowFileUI();

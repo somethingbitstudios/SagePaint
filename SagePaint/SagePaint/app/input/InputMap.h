@@ -18,6 +18,7 @@ struct KeyFunction {
 	void (*func)();
 	Key_Context_Enum context;//maybe not the best? meh ( using a longs individual bits would allow for 64 contexts at once )
 	int priority;//might not use
+	
 };
 struct KeyAction {
 	bool mode=false;//ADD functionality or OVERRIDE the function if ? 
@@ -25,6 +26,13 @@ struct KeyAction {
 	std::vector<KeyFunction> funcs;
 	std::vector<KeyFunction> funcsHold;
 	std::vector<KeyFunction> funcsRelease;
+	bool IsAssignedTo()
+	{
+		if (funcs.size() > 0 || funcsHold.size() > 0 || funcsRelease.size() > 0) {
+			return true;
+		}
+			return false;
+	}
 };
 class InputMap {
 private:
@@ -38,13 +46,13 @@ public:
 	void Init(); //fills the map with keyactions for each key (with an empty vector 'funcs')
 	
 	void InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum context, int functionNumber);
-	void InitKeyFunction(KeyFunction* kf, int priority, Key_Context_Enum context, std::string functionName);
+	void InitKeyFunction(int key,int state,KeyFunction* kf, int priority, Key_Context_Enum context, std::string functionName);
 
 	//research what the best way to do default is, when it needs to be part of the program, not some default.kmap file
 	void Default(int defaultType /*my, krita-like, no shortcut version(needs to be 0) etc...*/);//calls init() if map is empty, then fills the keymap with default values
 
 	bool Action(int key, int action, int mods); //call KeyFunctions etc etc
-
+	KeyAction GetKey(int key);
 	static void SetContext(Key_Context_Enum keyContext);
 };
 typedef std::shared_ptr<InputMap> InputMapPtr;

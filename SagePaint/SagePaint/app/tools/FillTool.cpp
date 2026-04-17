@@ -5,23 +5,34 @@
 #include <queue>
 #include "../ProjectManager.h"
 
+#include <sstream>
+#include <imgui.h>
 //TODO: make it, make multiple versions too
 void FillTool::Fill() {
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
-
-	float* color_float = CanvasManager::color;
+    /*
+	float* color_float = CanvasManager::colorFloat;
 	//TODO: support width
 	//TODO: optimize
 	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
 	if (color[3] == 0)return;
+    */
 
+    unsigned char* color;
+    if (CanvasManager::erase) {
+        color = CanvasManager::transparent;
+        //TODO:override paint on top mode to always be replace color mode!
+    }
+    else {
+        color = CanvasManager::color;
+    }
 	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
 	
 	FillTool::FillRender(image->texture, image->width, image->height, upPos.x,upPos.y,color);
 	
-	CanvasManager::obj->Changed();
+	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
     ProjectManager::Dirty();
 
 }
@@ -90,4 +101,21 @@ void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, un
             q.push({ cx, cy + 1 });
         }
     }
+}
+
+void FillTool::ShowUI() {
+    ImGui::Separator();
+    ImGui::Text("Fill Settings:");
+  
+
+}
+std::string FillTool::ConfigString()
+{
+    std::stringstream ss;
+
+    ss << R"(	{
+		"mode": )" << "0"/*static_cast<int>(mode)*/ << R"(
+	})";
+
+    return ss.str();
 }

@@ -4,33 +4,13 @@
 #include "../CanvasManager.h"
 #include <algorithm>
 #include "../ProjectManager.h"
+#include "Icons.h"
+#include "../SettingsManager.h"
 
 CursorFocus UIManager::cursor_focus = FOCUS_CANVAS;
-std::vector<ImTextureID> icons;
-void AddIcon(std::string path) {
-	GLuint texId;
-	ImagePtr image = std::make_shared<Image>(path);
 
-	glGenTextures(1, &texId);
-	glBindTexture(GL_TEXTURE_2D, texId);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
-
-	icons.push_back((void*)(intptr_t)texId);
-}
 void UIManager::Init() {
-	AddIcon("./icons/tool_pencil40.png");
-	AddIcon("./icons/tool_line40.png");
-	AddIcon("./icons/tool_shape40.png");
-	AddIcon("./icons/tool_fill40.png");
-	AddIcon("./icons/tool_select40.png");
 }
 void UIManager::SetCursorFocus(CursorFocus c)
 {
@@ -61,61 +41,8 @@ bool UIManager::ShowUI()
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-	ImGui::Text("Tools:");
-	if (ImGui::ImageButton(
-		"SetToPencilButton",
-		icons[0],
-		ImVec2(40, 40),			//size
-		ImVec2(0.0f, 0.0f),     //uv0
-		ImVec2(1.0f, 1.0f),     //uv1
-		ImVec4(0.1, 0.1, 0.1, 1)//bg color
-	)) {
-		ToolManager::SetTool(TOOL_PENCIL);
-	}
-	ImGui::SameLine();
-	if (ImGui::ImageButton(
-		"SetToLineButton",
-		icons[1],
-		ImVec2(40, 40),			//size
-		ImVec2(0.0f, 0.0f),     //uv0
-		ImVec2(1.0f, 1.0f),     //uv1
-		ImVec4(0.1, 0.1, 0.1, 1)//bg color
-	)) {
-		ToolManager::SetTool(TOOL_LINE);
-	}
-	ImGui::SameLine();
-	if (ImGui::ImageButton(
-		"SetToShapeButton",
-		icons[2],
-		ImVec2(40, 40),			//size
-		ImVec2(0.0f, 0.0f),     //uv0
-		ImVec2(1.0f, 1.0f),     //uv1
-		ImVec4(0.1, 0.1, 0.1, 1)//bg color
-	)) {
-		ToolManager::SetTool(TOOL_SHAPE);
-	}
-	ImGui::SameLine();
-	if (ImGui::ImageButton(
-		"SetToFillButton",
-		icons[3],
-		ImVec2(40, 40),			//size
-		ImVec2(0.0f, 0.0f),     //uv0
-		ImVec2(1.0f, 1.0f),     //uv1
-		ImVec4(0.1, 0.1, 0.1, 1)//bg color
-	)) {
-		ToolManager::SetTool(TOOL_FILL);
-	}
-	if (ImGui::ImageButton(
-		"SetToSelectButton",
-		icons[4],
-		ImVec2(40, 40),			//size
-		ImVec2(0.0f, 0.0f),     //uv0
-		ImVec2(1.0f, 1.0f),     //uv1
-		ImVec4(0.1, 0.1, 0.1, 1)//bg color
-	)) {
-		ToolManager::SetTool(TOOL_SELECT);
-	}
-
+	
+	ToolManager::ShowUI();
 	ImGui::End();
 
 
@@ -126,9 +53,10 @@ bool UIManager::ShowUI()
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
 	ImGui::Text("The right menu");
-	ImGui::ColorEdit4("My Color", (float*)&CanvasManager::color);
-	ImGui::ColorEdit4("Background", (float*)&CanvasManager::backgroundColor);
-
+	if (ImGui::ColorEdit4("My Color", (float*)&CanvasManager::colorFloat)) {
+		CanvasManager::UpdateColor();
+	}
+	
 
 	ImGui::Text("Layers:");
 	for (int i = CanvasManager::obj->layers->size() - 1; i >= 0; i--) {
@@ -191,7 +119,7 @@ bool UIManager::ShowUI()
 
 		}
 
-		const char* blend_modes[] = { "Normal", "Darken", "Lighten" };
+		const char* blend_modes[] = { "Normal", "Darken", "Lighten","Add","Multiply"};
 
 		if (ImGui::Combo("Blend", &((*CanvasManager::obj->layers)[i]->blendCandidate), blend_modes, IM_ARRAYSIZE(blend_modes))) {
 
@@ -220,13 +148,18 @@ bool UIManager::ShowUI()
 
 		if (ImGui::BeginMenu("View"))
 		{
-
+			if (ImGui::MenuItem("Settings", SettingsManager::showWindow?"(hide)":"(show)")) {
+				//open settings window  by changing SettingsManager::showWindow to true
+				SettingsManager::showWindow = true;
+			}
+			
 			ImGui::EndMenu();
 		}
-
+		
 
 		ImGui::EndMainMenuBar();
 	}
+	SettingsManager::ShowUI();//write the inside of this function
 	return true;
 
 

@@ -4,6 +4,8 @@
 #include <glm/ext/vector_int2.hpp>
 #include <algorithm>
 #include "../ProjectManager.h"
+#include <imgui.h>
+#include <sstream>
 glm::ivec2 LineTool::downPos = { 0,0 };
 glm::ivec2 lastUpPos = { 0,0 };
 
@@ -20,41 +22,112 @@ void LineTool::LineEnd() {
 
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 
-	float* color_float = CanvasManager::color;
-	//TODO: support width
-	//TODO: optimize
-	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
-	if (color[3] == 0)return;
+	unsigned char* color;
+	if (CanvasManager::erase) {
+		color = CanvasManager::transparent;
+		//TODO:override paint on top mode to always be replace color mode!
+	}
+	else {
+		color = CanvasManager::color;
+	}
 	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, CanvasManager::transparent);
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, strokeSize,CanvasManager::transparent);
 
 	image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y,color);
-	CanvasManager::obj->Changed();
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y, strokeSize, color);
+
+	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
 	CanvasManager::obj->Changed(0);
 	ProjectManager::Dirty();
 }
 void LineTool::LinePreview() {
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 
-	float* color_float = CanvasManager::color;
+/*	float* color_float = CanvasManager::colorFloat;
 	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
 	if (color[3] == 0)return;
+	*/
 
+	unsigned char* color;
+	if (CanvasManager::erase) {
+		color = CanvasManager::erasePreviewColor;
+		//TODO:override paint on top mode to always be replace color mode!
+	}
+	else {
+		color = CanvasManager::color;
+	}
 	
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, CanvasManager::transparent);
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y, color);
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, strokeSize, CanvasManager::transparent);
+	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y, strokeSize, color);
 
 	
 	CanvasManager::obj->Changed(0);
 	lastUpPos = upPos;
 }
 
-void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, int y0, int x1, int y1, unsigned char color[4]) {
-	
+void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, int y0, int x1, int y1,float size, unsigned char color[4]) {
+	// Treat size as diameter. Ensure a minimum radius so size 1 still draws a single pixel.
+	float radius = std::max(0.5f, size / 2.0f);
+	int r_ceil = static_cast<int>(std::ceil(radius));
+	float r_sq = radius * radius;
+
+	// Helper lambda to draw a filled circle (the brush tip) at a given point
+	auto drawBrush = [&](int cx, int cy) {
+		// Calculate the bounding box for the brush, clamped strictly to texture bounds
+		int start_x = std::max(0, cx - r_ceil);
+		int end_x = std::min(tex_w - 1, cx + r_ceil);
+		int start_y = std::max(0, cy - r_ceil);
+		int end_y = std::min(tex_h - 1, cy + r_ceil);
+
+		// Fill pixels within the circle's radius
+		for (int py = start_y; py <= end_y; py++) {
+			for (int px = start_x; px <= end_x; px++) {
+				float dx_px = static_cast<float>(px - cx);
+				float dy_py = static_cast<float>(py - cy);
+
+				// If the distance squared is within the radius squared, draw the pixel
+				if ((dx_px * dx_px + dy_py * dy_py) <= r_sq) {
+					int index = (px + py * tex_w) * 4;
+					texture[index] = color[0];
+					texture[index + 1] = color[1];
+					texture[index + 2] = color[2];
+					texture[index + 3] = color[3];
+				}
+			}
+		}
+		};
+
+	// Standard DDA line calculation
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+
+	// The number of steps is based on the longest axis
+	int steps = std::max(std::abs(dx), std::abs(dy));
+
+	// Handle single-point dot (adx == 0 && ady == 0)
+	if (steps == 0) {
+		drawBrush(x0, y0);
+		return;
+	}
+
+	// Calculate how much to move per step
+	float x_inc = static_cast<float>(dx) / steps;
+	float y_inc = static_cast<float>(dy) / steps;
+
+	float curr_x = x0;
+	float curr_y = y0;
+
+	// Step along the line and stamp the brush at each point
+	for (int i = 0; i <= steps; i++) {
+		drawBrush(static_cast<int>(std::round(curr_x)), static_cast<int>(std::round(curr_y)));
+		curr_x += x_inc;
+		curr_y += y_inc;
+	}
+
+	/*
 	float dx = x0 - x1;
 	int adx = abs(dx);
 	float dy = y0 - y1;
@@ -132,5 +205,33 @@ void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, in
 			img[3] = color[3];
 		}
 	}
-	
+	*/
+}
+
+float LineTool::strokeSize = 1;
+LineMode LineTool::mode = LINE_NORMAL;
+void LineTool::ShowUI() {
+	ImGui::Separator();
+	ImGui::Text("Line Settings:");
+	if (ImGui::InputFloat("size", &strokeSize, 1, 2, "%.1f")) {
+		strokeSize = std::max(0.5f, strokeSize);
+	}
+	const char* pencil_modes[] = { "Normal", "Rectangular" };
+	static int temp_mode = 0;
+	if (ImGui::Combo("Mode", &(temp_mode), pencil_modes, IM_ARRAYSIZE(pencil_modes))) {
+
+		mode = (LineMode)temp_mode;
+	}
+
+}
+std::string LineTool::ConfigString()
+{
+	std::stringstream ss;
+
+	ss << R"(	{
+		"strokeSize": )" << strokeSize << R"(,
+		"mode": )" << static_cast<int>(mode) << R"(
+	})";
+
+	return ss.str();
 }

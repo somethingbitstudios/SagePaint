@@ -52,6 +52,9 @@ void CanvasObject::ChangeBlendMode(unsigned int i)
 	}
 	
 }
+ImagePtr CanvasObject::Export() {
+	return model->Export();
+}
 void CanvasObject::SetSelectedLayer(int i)
 {
 	if (i < 0)i += layers->size();
@@ -83,11 +86,21 @@ void CanvasObject::Draw() {
 	p = glm::ortho(0.0f, Screen_width, Screen_height, 0.f, -1.0f, 1.0f);
 	model->Draw(m, p);
 }
+float zoom1 = 1;
+float force1 = 0;
+void CanvasObject::SetZoomCached() {
+	scale.x = (float)resX * zoom1;
+	scale.y = (float)resY * zoom1;
+	model->SetZoom(zoom1, force1);
+
+}
 void CanvasObject::SetZoom(float zoom,float forceNearestThreshold) {
 
 	scale.x = (float)resX * zoom;
 	scale.y = (float)resY * zoom;
 	model->SetZoom(zoom,forceNearestThreshold);
+	zoom1 = zoom;
+	force1 = forceNearestThreshold;
 }
 
 void CanvasObject::ResChange(unsigned int rX, unsigned int rY)
@@ -97,6 +110,54 @@ void CanvasObject::ResChange(unsigned int rX, unsigned int rY)
 	model->ResChange(rX, rY);
 }
 
+void CanvasObject::Crop(int x, int y, int oX, int oY) {
+	if (x > 0 && y > 0) {
+		int lc = layers->size();
+		for (int i = 0; i < lc; i++) {
+			LayerPtr layer = (*layers)[i];
+
+			ImagePtr image = layer->image;
+
+			unsigned char* new_tex = new unsigned char[x * y * 4];
+			for (int dest_y = 0; dest_y < y; dest_y++) {
+				for (int dest_x = 0; dest_x < x; dest_x++) {
+
+					int dest_index = (dest_y * x + dest_x) * 4;
+
+					int src_x = dest_x + oX;
+					int src_y = dest_y + oY;
+
+					if (src_x >= 0 && src_x < image->width &&
+						src_y >= 0 && src_y < image->height) {
+
+						int src_index = (src_y * image->width + src_x) * 4;
+
+						new_tex[dest_index] = image->texture[src_index];
+						new_tex[dest_index + 1] = image->texture[src_index + 1];
+						new_tex[dest_index + 2] = image->texture[src_index + 2];
+						new_tex[dest_index + 3] = image->texture[src_index + 3];
+					}
+					else {
+						new_tex[dest_index] = 0;
+						new_tex[dest_index + 1] = 0;
+						new_tex[dest_index + 2] = 0;
+						new_tex[dest_index + 3] = 0;
+					}
+				}
+			}
+
+			delete[] image->texture;
+
+			image->texture = new_tex;
+			image->width = x;
+			image->height = y;
+		}
+		ResChange(x, y);
+		SetZoomCached();
+		model->SendResizedToGpu();
+
+	}
+}
 void CanvasObject::SwapLayerUp(int index) {
 	if (index >= 0 && index < layers->size()-1) {
 		LayerPtr temp = (*layers)[index+1];
@@ -169,5 +230,5 @@ void CanvasObject::Remove(int index) {
 	model->DrawFbo();
 }
 void CanvasObject::AddLayer() {
-	AddLayer(std::make_shared<Image>(640, 400));
+	AddLayer(std::make_shared<Image>(resX, resY));
 }

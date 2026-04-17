@@ -7,6 +7,7 @@
 #include "./tools/ToolManager.h"
 #include "ui/UIManager.h"
 #include "graphics/ShaderManager.h"
+#include "SettingsManager.h"
 //InputManagerPtr inputManager = std::make_shared<InputManager>();
 //CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
@@ -91,6 +92,8 @@ void MainApp() {
 	ImGui_ImplOpenGL3_Init();
 
 
+	SettingsManager::LoadConfig();
+	SettingsManager::LoadToolConfig();
 
 	InputManager::Init();
 	ShaderManager::Init();
@@ -100,7 +103,7 @@ void MainApp() {
 
 	//ProjectManager::Open("C:\\temp\\new.sagepaint"); //recent?
 	UIManager::Init();
-
+	ToolManager::Init();
 	ProjectManager::New();
 
 	/*

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <stb_image_write.h>
 FileManager::FileManager() {
 
 }
@@ -15,6 +16,12 @@ unsigned char * FileManager::LoadImage(std::string filepath, int* width, int* he
 	int n=0;
 	return stbi_load(filepath.c_str(), width, height, &n, 4);
 }
+
+void FileManager::WriteImage(std::string path,unsigned char* img,int width,int height)
+{
+stbi_write_png(path.c_str(), width, height, 4, img, width * 4);
+}
+
 unsigned char* FileManager::LoadImagePlus(std::string filepath, int* width, int* height, int* numOfChannels, int requestedChannelNum) {
 	return stbi_load(filepath.c_str(), width, height, numOfChannels, requestedChannelNum);
 }

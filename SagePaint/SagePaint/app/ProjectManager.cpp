@@ -19,20 +19,28 @@ enum ProjectAction {
 	NONE,
 	SAVE,
 	OPEN,
-	EXIT
+	EXIT,
+	NEW
 };
 
 bool ProjectManager::dirty = false;
-std::string ProjectManager::name = "test";
+std::string ProjectManager::name = "New Project";
+std::string ProjectManager::description = "...";
+
 bool ProjectManager::projectDataDirty = false;
 std::string ProjectManager::fullPath = "C:\\temp\\new.sagepaint";
 
 
 ProjectAction bufferedAction = NONE;
 bool show_exit_popup = false;
+bool show_new_popup = false;
 bool show_save_popup = false;
+bool show_export_popup = false;
 bool show_open_popup = false;
 bool show_opensave_popup = false;
+bool show_resize_popup = false;
+
+bool show_project_window = false;
 
 bool ProjectManager::ShowFileUI()
 {
@@ -40,11 +48,17 @@ bool ProjectManager::ShowFileUI()
 
 	static std::string open_filename = fullPath;
 	static std::string save_filename = fullPath;
+	static std::string export_filename = fullPath;
 
 	if (ImGui::BeginMenu("File"))
 	{
 		if (ImGui::MenuItem("New", "Shortcut")) {
-			New();//if dirty, dont do this
+			if (dirty) {
+				show_new_popup = true;
+			}
+			else {
+				New();
+			}
 		}
 		if (ImGui::MenuItem("Open", "Shortcut")) {
 			if (dirty) {
@@ -65,6 +79,7 @@ bool ProjectManager::ShowFileUI()
 				show_save_popup = true;
 			}
 		}
+
 		if (ImGui::MenuItem("Exit")) {
 			//Open dialog box	
 			if (dirty) {
@@ -77,9 +92,30 @@ bool ProjectManager::ShowFileUI()
 			//runApp = false;
 		}
 
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Export")) {
+			show_export_popup = true;
+			}
+
+		if (ImGui::MenuItem("Resize")) {
+			show_resize_popup = true;
+		}
+		ImGui::Separator();
+		if (ImGui::MenuItem("Project info")) {
+			show_project_window = true;
+		}
+
 
 		ImGui::EndMenu();
 	}
+		if (show_new_popup)
+		{
+			ImGui::OpenPopup("Save before new?");
+			show_new_popup = false;
+
+			save_filename = fullPath;
+		}
 		if (show_exit_popup)
 		{
 			ImGui::OpenPopup("Save Changes?");
@@ -102,10 +138,107 @@ bool ProjectManager::ShowFileUI()
 			show_opensave_popup = false;
 			open_filename = fullPath;
 		}
-		//SAVEAS
+		if (show_export_popup) {
+			ImGui::OpenPopup("Export image to:");
+			show_export_popup = false;
+			export_filename = fullPath;
+			
+		}
+		static std::string project_name;
+		static std::string project_description;
+		if (show_project_window) {
+			ImGui::OpenPopup("Project information");
+			show_project_window = false;
+			project_name = name;
+			project_description = description;
+
+		}
+		if (ImGui::BeginPopupModal("Project information", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			
+			ImGui::InputText("##project_name", &project_name);
+			
+			ImGui::InputText("##project_desc", &project_description);
 
 
 
+
+			if (ImGui::Button("Save changes", ImVec2(138, 0)))
+			{
+				name = project_name;
+				description = project_description;
+				projectDataDirty = true;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		static int rX = 640;
+		static int oX = 640;
+		static int rY = 0;
+		static int oY = 0;
+
+		if (show_resize_popup) {
+			ImGui::OpenPopup("Resize");
+			show_resize_popup = false;
+			rX = CanvasManager::obj->resX;
+			rY = CanvasManager::obj->resY;
+			oX = 0;
+			oY = 0;
+		}
+		if (ImGui::BeginPopupModal("Resize", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::InputInt("##resizeX", &rX); ImGui::SameLine();
+			ImGui::InputInt("##resizeY", &rY);
+
+			ImGui::InputInt("##offsetX", &oX); ImGui::SameLine();
+			ImGui::InputInt("##offsetY", &oY);
+
+
+			if (ImGui::Button("Resize", ImVec2(138, 0)))
+			{
+				CanvasManager::Crop(rX,rY,oX,oY);
+				CanvasManager::Init();//reset pos
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+		//export
+		if (ImGui::BeginPopupModal("Export image to:", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("Enter file name or path to export:");
+
+			ImGui::InputText("##export_filename", &export_filename);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Export", ImVec2(120, 0)))
+			{
+				CanvasManager::Export(export_filename);
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		//OPEN
 		if (ImGui::BeginPopupModal("Open project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::Text("Enter file name or path to open:");
@@ -162,6 +295,12 @@ bool ProjectManager::ShowFileUI()
 					ImGui::EndPopup();
 					return false;
 				}
+				else if (bufferedAction == NEW) {
+					bufferedAction = NONE;
+					save_filename = fullPath;
+					New();
+
+				}
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -185,7 +324,6 @@ bool ProjectManager::ShowFileUI()
 				if (ImGui::Button("Save", ImVec2(120, 0))) {
 
 					show_save_popup = true;
-					bufferedAction = EXIT;
 
 					bufferedAction = OPEN;
 					ImGui::CloseCurrentPopup();
@@ -194,7 +332,6 @@ bool ProjectManager::ShowFileUI()
 				ImGui::SameLine();
 				if (ImGui::Button("Save As", ImVec2(120, 0))) {
 
-					bufferedAction = EXIT;
 					show_save_popup = true;
 					bufferedAction = OPEN;
 					ImGui::CloseCurrentPopup();
@@ -217,6 +354,44 @@ bool ProjectManager::ShowFileUI()
 				ImGui::EndPopup();
 			}
 
+				if (ImGui::BeginPopupModal(	"Save before new?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+				{
+					ImGui::Text("Save before starting new project?");
+					ImGui::Separator();
+
+
+					if (ImGui::Button("Save", ImVec2(120, 0))) {
+
+						show_save_popup = true;
+
+						bufferedAction = NEW;
+						ImGui::CloseCurrentPopup();
+
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Save As", ImVec2(120, 0))) {
+
+						show_save_popup = true;
+						bufferedAction = NEW;
+						ImGui::CloseCurrentPopup();
+
+					}
+					if (ImGui::Button("Skip", ImVec2(120, 0))) {
+
+						New();
+						ImGui::CloseCurrentPopup();
+
+					}
+					ImGui::SetItemDefaultFocus();
+					ImGui::SameLine();
+
+
+					if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::EndPopup();
+				}
 
 		//EXIT
 		if (ImGui::BeginPopupModal("Save Changes?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -289,26 +464,7 @@ bool ProjectManager::ExitDlgOpen()
 
 bool ProjectManager::Save(std::string path) //path may be folder, or a file to override. only override .sagepaint files, otherwise
 {
-	/*
-	//.sagepaint structure: basically a file archive for bundling
-	//project.conf (json)- has project configuration and info (resolution , time made, description etc)
-	//also has layer data:
-	number of layers
-	N times this:
-	{
-	Layer Name on one row
-	opacity float
-	...
-	imagedata: filepath (layerdata/x.png)
-	anything, layer mask for example: filepath
-	...
-	}
-
-	layerdata/ folder
-	inside, .png files, by default, name [layer index].png, ex.: 0.png
-	then layer mask can be 0_mask_0.png etc.
-	*/
-
+	
 	//save project name (std::string name is in thecpp file)
 
 	
@@ -332,8 +488,8 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 
 	out << R"({
     "name": ")" << name << R"(",
-    "version": "0.64",
-    "description": "This is a SagePaint project!",
+    "version": "0.68",
+    "description": ")" << description << R"(",
 	"resolutionX": )" << CanvasManager::obj->resX << R"(,
 	"resolutionY": )" << CanvasManager::obj->resY;
 
@@ -392,6 +548,7 @@ bool ProjectManager::Save(std::string path) //path may be folder, or a file to o
 
 	out.close();
 
+	name = targetPath.filename().string();
 	fullPath = targetPath.string();
 	//Open(path);//Test
 	dirty = false;
@@ -413,6 +570,7 @@ bool ProjectManager::Open(std::string path)
 		DLOG("file doesnt exist")
 			return false;
 	}
+	unsigned int rX, rY;
 	if (fs::is_regular_file(targetPath)) {
 		std::string ext = targetPath.extension().string();
 		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
@@ -420,17 +578,18 @@ bool ProjectManager::Open(std::string path)
 			Clear();
 
 			name = targetPath.filename().string();
+			description = "...";
 			//std::string version;
 			//std::string description = j.value("description", "");
-			unsigned int rX, rY;
+			
 			LayerPtr image = std::make_shared<Layer>(targetPath.string());
 			image->name = targetPath.filename().string();
 
 			rX = image->image->width;
 			rY = image->image->height;
 			//validate
-			CanvasManager::obj->resX = rX;
-			CanvasManager::obj->resY = rY;
+			//CanvasManager::obj->resX = rX;
+			//CanvasManager::obj->resY = rY;
 
 			LayerPtr l = std::make_shared<Layer>(rX, rY);
 			l->name = "Preview";
@@ -459,14 +618,14 @@ bool ProjectManager::Open(std::string path)
 
 		name = j.value("name", "");
 		std::string version = j.value("version", "");
-		std::string description = j.value("description", "");
-		unsigned int rX, rY;
+		description = j.value("description", "");
+		
 		rX = j.value("resolutionX", 640);
 		rY = j.value("resolutionY", 400);
 		//validate
-		CanvasManager::obj->resX = rX;
-		CanvasManager::obj->resY = rY;
-
+		//CanvasManager::obj->resX = rX;
+		//CanvasManager::obj->resY = rY;
+		
 		//add the preview layer
 		LayerPtr l = std::make_shared<Layer>(rX, rY);
 		l->name = "Preview";
@@ -502,6 +661,10 @@ bool ProjectManager::Open(std::string path)
 	fullPath = targetPath.string();
 	CanvasManager::Init();//set transform to default
 	CanvasManager::obj->SetSelectedLayer(-1);//max
+	CanvasManager::ResChange(rX,rY);
+	CanvasManager::obj->SetZoomCached();
+	CanvasManager::obj->Changed();
+	
 	projectDataDirty = true;
 	dirty = false;
 	
@@ -527,6 +690,7 @@ bool ProjectManager::New()
 	name = "New project";
 	CanvasManager::obj->SetSelectedLayer(-1);//max
 	CanvasManager::Init();//set transform to default
+	CanvasManager::obj->Changed();
 	projectDataDirty = true;
 	dirty = false;
 

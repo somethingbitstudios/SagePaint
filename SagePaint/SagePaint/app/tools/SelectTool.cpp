@@ -2,7 +2,8 @@
 #include "../CanvasManager.h"
 #include "ShapeTool.h"
 #include "../ProjectManager.h"
-
+#include <sstream>
+#include <imgui.h>
 glm::ivec2 lastUpPos2 = { 0,0 };
 glm::ivec2 SelectTool::downPos = { 0,0 };
 ImagePtr selectedAreaImage;
@@ -22,7 +23,7 @@ void SelectTool::SelectPreview()
 	ShapeTool::ShapeRenderFilledRect(image->texture, image->width, image->height, downPos, lastUpPos2, CanvasManager::transparent);
 
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
-	float* color_float = CanvasManager::color;
+	float* color_float = CanvasManager::colorFloat;
 	//TODO: support width
 	//TODO: optimize
 	unsigned char color[4] = { 0,0,255,255 };//make this only happen once per color setting
@@ -97,6 +98,33 @@ void SelectTool::SelectDragCommit()
 	dragMode = false;//simple version for debugging
 	ProjectManager::Dirty();
 }
+
+void SelectTool::ShowUI() {
+	ImGui::Separator();
+	ImGui::Text("Select Settings:");
+	/*if (ImGui::InputFloat("size", &PencilTool::strokeSize, 1, 2, "%.1f")) {
+		strokeSize = std::max(0.5f, strokeSize);
+	}
+	const char* pencil_modes[] = { "Normal", "Simple" };
+	static int temp_mode = 0;
+	if (ImGui::Combo("Mode", &(temp_mode), pencil_modes, IM_ARRAYSIZE(pencil_modes))) {
+
+		mode = (PencilMode)temp_mode;
+	}
+	*/
+}
+
+std::string SelectTool::ConfigString()
+{
+	std::stringstream ss;
+
+	ss << R"(	{
+		"mode": )" << static_cast<int>(0) << R"(
+	})";
+
+	return ss.str();
+}
+
 
 
 

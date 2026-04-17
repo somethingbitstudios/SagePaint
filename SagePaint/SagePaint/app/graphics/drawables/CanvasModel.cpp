@@ -35,8 +35,9 @@ static GLuint compositeTexture;
 
 static ShaderProgramPtr shader_composite_normal;
 static ShaderProgramPtr shader_final;
+
 void CanvasModel::Changed() {
-	SendLayerToGpu(selected_layer);
+	SendLayersToGpu();
 }
 void CanvasModel::Changed(unsigned int i) {
 	SendLayerToGpu(i);
@@ -95,7 +96,15 @@ void CanvasModel::ResChange(unsigned int rX, unsigned int rY) {
 	
 }
 void CanvasModel::DeleteFBO() {
+	if (compositeTexture != 0) {
+		glDeleteTextures(1, &compositeTexture);
+		compositeTexture = 0; 
+	}
 
+	if (fbo != 0) {
+		glDeleteFramebuffers(1, &fbo);
+		fbo = 0; 
+	}
 }
 void CanvasModel::CreateFBO() {
 	
@@ -170,7 +179,16 @@ void CanvasModel::SendLayerToGpuNoFbo(int index) {
 		GL_RGBA, GL_UNSIGNED_BYTE, i->texture);
 
 	//glGenerateMipmap(GL_TEXTURE_2D);
-	DrawFbo();
+	//DrawFbo();
+}
+void CanvasModel::SendLayerToGpuNoFboResized(int index) {
+	ImagePtr i = (*layers)[index]->image;
+	glBindTexture(GL_TEXTURE_2D, (*layers)[index]->textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+		i->width, i->height, 
+		0, GL_RGBA, GL_UNSIGNED_BYTE, i->texture);
+
+	//SetZoomCurrentTexture();
 }
 void CanvasModel::SendLayersToGpu() {
 	for (int i = 0; i < layers->size(); i++) {
@@ -178,7 +196,14 @@ void CanvasModel::SendLayersToGpu() {
 	}
 	DrawFbo();
 }
+void CanvasModel::SendResizedToGpu() {
+	for (int i = 0; i < layers->size(); i++) {
+		SendLayerToGpuNoFboResized(i);
+	}
 
+	DrawFbo();
+
+}
 void CanvasModel::SetImage(ImagePtr i) {
 	int oldw=0,oldh=0;
 	
@@ -274,6 +299,24 @@ CanvasModel::CanvasModel() :Model() {
 	}
 
 }
+ImagePtr CanvasModel::Export() {
+	
+	if (compositeImage == nullptr || compositeImage->width != resX || compositeImage->height != resY) {
+		compositeImage = std::make_shared<Image>(resX, resY);
+
+	}
+	GLsizei bufSize = resX * resY * 4;
+	glGetTextureImage(
+		compositeTexture,        
+		0,                      
+		GL_RGBA,                
+		GL_UNSIGNED_BYTE,        
+		bufSize,                
+		compositeImage->texture 
+	);
+
+	return compositeImage;
+}
 void CanvasModel::DrawFbo() {
 
 	//fbo render
@@ -289,7 +332,8 @@ void CanvasModel::DrawFbo() {
 	glUseProgram(shader_composite_normal->id);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	
 
 	glActiveTexture(GL_TEXTURE0);
 	texLoc = glGetUniformLocation(shader_composite_normal->id, "tex");
@@ -304,20 +348,49 @@ void CanvasModel::DrawFbo() {
 
 	glBindVertexArray(vertex_array);
 	
+	auto draw = [&](LayerPtr l) {
+		switch (l->blend) {//this is easier for now
+		case BLEND_Normal:
+			glBlendEquation(GL_FUNC_ADD);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+
+		case BLEND_Lighten:
+			glBlendEquation(GL_MAX);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+			break;
+
+		case BLEND_Darken://broken for now
+			glBlendEquation(GL_MIN);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			break; 
+
+		case BLEND_Add:
+			glBlendEquation(GL_FUNC_ADD);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			break;
+
+		case BLEND_Multiply:
+			glBlendEquation(GL_FUNC_ADD);
+			glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+			break;
+		}
+		glBindTexture(GL_TEXTURE_2D, l->textureId);
+		glUniform1f(opacityLoc, l->opacity);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		};
+
 	for (size_t i = 1; i < (*layers).size(); i++)
 	{
 		if ((*layers)[i]->visible) {
-
-			glBindTexture(GL_TEXTURE_2D, (*layers)[i]->textureId);
-			glUniform1f(opacityLoc, (*layers)[i]->opacity);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			draw((*layers)[i]);	
 		}
 	}
 
 	if ((*layers).size()>0 && (*layers)[0]->visible) {
-		glBindTexture(GL_TEXTURE_2D, (*layers)[0]->textureId);
-		glUniform1f(opacityLoc, (*layers)[0]->opacity);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		if ((*layers)[0]->visible) {
+			draw((*layers)[0]);
+		}
 	}
 
 	glBindTexture(GL_TEXTURE_2D, compositeTexture);
