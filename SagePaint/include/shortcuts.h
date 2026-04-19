@@ -3,7 +3,7 @@
 
 
 #define MY_SQRT_2 sqrt(2)
-#define DEG_TO_RAD M_PI/180.0f;
+#define DEG_TO_RAD (M_PI/180.0f);
 
 //will not be using these I've decided
 //#define mshared(C, ...) std::make_shared<C>(__VA_ARGS__)

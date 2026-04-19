@@ -92,18 +92,23 @@ void MainApp() {
 	ImGui_ImplOpenGL3_Init();
 
 
-	SettingsManager::LoadConfig();
-	SettingsManager::LoadToolConfig();
-
-	InputManager::Init();
+	
 	ShaderManager::Init();
 	//'start()'
 	CanvasManager::obj= std::make_shared<CanvasObject>();
 	go = CanvasManager::obj;
 
+
+	InputManager::Init();
+
+	SettingsManager::LoadConfig();
+	SettingsManager::LoadToolConfig();
+	SettingsManager::LoadBindingConfig();
+
 	//ProjectManager::Open("C:\\temp\\new.sagepaint"); //recent?
 	UIManager::Init();
 	ToolManager::Init();
+
 	ProjectManager::New();
 
 	/*

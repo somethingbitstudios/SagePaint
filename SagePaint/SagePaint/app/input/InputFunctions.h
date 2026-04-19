@@ -11,6 +11,8 @@ struct FunctionData {
 	std::vector<int> key;
 	std::vector<int> keyHold;
 	std::vector<int> keyUp;
+	void AddBind(int keyid, int mode);
+	void RemoveBind(int keyid, int mode);
 };
 
 extern std::vector<FunctionData> inputFunctions;

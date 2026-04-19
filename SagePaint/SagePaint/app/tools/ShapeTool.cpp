@@ -186,14 +186,14 @@ void ShapeTool::ShowUI() {
 	if (ImGui::InputInt("point n.", &pointNumber, 1, 2)) {
 		pointNumber = std::max(3, pointNumber);
 	}
-	static float degreeOffset = 0;
+	static float degreeOffset = angleOffset / DEG_TO_RAD;
 	if (ImGui::InputFloat("offset", &degreeOffset, 1, 2, "%.2f")) {
 		angleOffset = degreeOffset * DEG_TO_RAD;
 		DLOG(angleOffset)
 		DLOG(degreeOffset)
 	}
 	const char* pencil_modes[] = { "Normal", "Rect. Constrained","Fast rectangle"};
-	static int temp_mode = 0;
+	static int temp_mode = (int)mode;
 	if (ImGui::Combo("Mode", &(temp_mode), pencil_modes, IM_ARRAYSIZE(pencil_modes))) {
 
 		mode = (ShapeMode)temp_mode;
@@ -206,8 +206,26 @@ std::string ShapeTool::ConfigString()
 
 	ss << R"(	{
 		"strokeSize": )" << strokeSize << R"(,
-		"mode": )" << static_cast<int>(mode) << R"(
+		"mode": )" << static_cast<int>(mode) << R"(,
+		"pointNumber": )" << pointNumber << R"(,
+		"angleOffset": )" << angleOffset << R"(
 	})";
 
 	return ss.str();
+}
+void ShapeTool::LoadConfig(const nlohmann::json& j) {
+
+	if (j.contains("strokeSize")) {
+		strokeSize = j["strokeSize"].get<float>();
+	}
+	if (j.contains("mode")) {
+		mode = (ShapeMode)j["mode"].get<int>();
+	}
+	if (j.contains("pointNumber")) {
+		pointNumber=j["pointNumber"].get<int>();
+	}
+	if (j.contains("angleOffset")) {
+		angleOffset = j["angleOffset"].get<float>();
+	}
+
 }

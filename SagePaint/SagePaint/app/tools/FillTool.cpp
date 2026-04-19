@@ -119,3 +119,10 @@ std::string FillTool::ConfigString()
 
     return ss.str();
 }
+void FillTool::LoadConfig(const nlohmann::json& j) {
+
+ 
+    if (j.contains("mode")) {
+       // mode = (PencilMode)j["mode"].get<int>();
+    }
+}

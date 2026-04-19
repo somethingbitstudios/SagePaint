@@ -50,5 +50,7 @@ public:
 	static bool erase;
 	static glm::ivec2 relativeCursorPos;
 	static glm::ivec2 lastRelativeCursorPos;
+
+	static bool focusedOnCanvas;
 };
 //typedef std::shared_ptr<CanvasManager> CanvasManagerPtr;//not needed?

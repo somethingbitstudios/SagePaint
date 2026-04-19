@@ -125,7 +125,7 @@ void PencilTool::ShowUI() {
 		strokeSize =std::max(0.5f, strokeSize);
 	}
 	const char* pencil_modes[] = { "Normal", "Simple"};
-	static int temp_mode = 0;
+	static int temp_mode = (int) mode;
 	if (ImGui::Combo("Mode", &(temp_mode), pencil_modes, IM_ARRAYSIZE(pencil_modes))) {
 
 		mode = (PencilMode)temp_mode;
@@ -143,4 +143,14 @@ std::string PencilTool::ConfigString()
 	})";
 
 	return ss.str();
+}
+
+void PencilTool::LoadConfig(const nlohmann::json& j) {
+
+	if (j.contains("strokeSize")) {
+		strokeSize = j["strokeSize"].get<float>();
+	}
+	if (j.contains("mode")) {
+		mode = (PencilMode)j["mode"].get<int>();
+	}
 }

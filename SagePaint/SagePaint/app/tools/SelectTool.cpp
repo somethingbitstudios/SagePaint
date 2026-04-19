@@ -125,6 +125,12 @@ std::string SelectTool::ConfigString()
 	return ss.str();
 }
 
+void SelectTool::LoadConfig(const nlohmann::json& j) {
 
+	
+	if (j.contains("mode")) {
+		//mode = (SelectMode)j["mode"].get<int>();
+	}
+}
 
 

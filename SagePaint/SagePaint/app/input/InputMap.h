@@ -35,11 +35,11 @@ struct KeyAction {
 	}
 };
 class InputMap {
-private:
+public:
 	std::unordered_map<int, KeyAction> keyMap; // not sure if an array would not be better after all, but it depends on the amount of used keys I suppose, this saves space
 	
 	//static Key_Context_Enum keyContext;
-public: 
+
 	InputMap(); //this one is for 'no init'
 	InputMap(int defaultType);//this one calls default
 
@@ -50,7 +50,7 @@ public:
 
 	//research what the best way to do default is, when it needs to be part of the program, not some default.kmap file
 	void Default(int defaultType /*my, krita-like, no shortcut version(needs to be 0) etc...*/);//calls init() if map is empty, then fills the keymap with default values
-
+	
 	bool Action(int key, int action, int mods); //call KeyFunctions etc etc
 	KeyAction GetKey(int key);
 	static void SetContext(Key_Context_Enum keyContext);

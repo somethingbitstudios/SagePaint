@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/ext/vector_int2.hpp>
 
+#include <nlohmann/json.hpp>
 #include <string>
 enum ShapeMode {
 	SHAPE_NORMAL,
@@ -16,6 +17,7 @@ public:
 	static void ShowUI();
 
 	static std::string ConfigString();
+	static void LoadConfig(const nlohmann::json& j);
 	static void ShapeEnd();
 	static int pointNumber;
 	static float angleOffset;

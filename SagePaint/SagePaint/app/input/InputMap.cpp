@@ -21,7 +21,7 @@ InputMap::InputMap(int defaultType) {
 void InputMap::Init() {
 	//inputFunctions[0] = { Click,   "Click",   "does click",        1 };
 	//inputFunctions[1] = { ClickUI, "ClickUI", "does click in UI",  2 };
-
+	keyMap.clear();
 	//adds empty values for all keys, at least 32-348 for keys, and add some for mouse at 1,2 maybe
 	for (int i = 32; i < 349;i++) {
 		
@@ -163,7 +163,7 @@ void InputMap::Default(int defaultType) {
 	switch (defaultType) {
 	default:
 		
-		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = true; //not additive, override = specific actions prevent default behaviour of PointerX
+		keyMap[GLFW_MOUSE_BUTTON_LEFT].mode = false; //true -> not additive, override = specific actions prevent default behaviour of PointerX
 		
 		InitKeyFunction(GLFW_MOUSE_BUTTON_LEFT,0,&a, 0, KEY_CONTEXT_DEFAULT, "PointerDown");
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcs.emplace_back(a);
@@ -173,12 +173,15 @@ void InputMap::Default(int defaultType) {
 		keyMap[GLFW_MOUSE_BUTTON_LEFT].funcsRelease.emplace_back(a);
 
 		
-		keyMap[GLFW_MOUSE_BUTTON_RIGHT].mode = true; //not additive, override
+		keyMap[GLFW_MOUSE_BUTTON_RIGHT].mode = false; //not additive, override
 
 		InitKeyFunction(GLFW_MOUSE_BUTTON_RIGHT, 1, &a, 0, KEY_CONTEXT_DEFAULT, "Drag");
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].funcsHold.emplace_back(a);
+		InitKeyFunction(GLFW_MOUSE_BUTTON_RIGHT, 2, &a, 0, KEY_CONTEXT_DEFAULT, "DragUp");
+		keyMap[GLFW_MOUSE_BUTTON_RIGHT].funcsRelease.emplace_back(a);
 
-		keyMap[GLFW_KEY_W].mode = true; //not additive, override
+
+		keyMap[GLFW_KEY_W].mode = false; //not additive, override
 
 		InitKeyFunction(GLFW_KEY_W, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomOut");
 		keyMap[GLFW_KEY_W].funcs.emplace_back(a);

@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+
+#include <nlohmann/json.hpp>
 enum PencilMode {
 	PENCIL_NORMAL,
 	PENCIL_SIMPLE
@@ -11,6 +13,7 @@ public:
 	static void StrokeEnd();
 	static void ShowUI();
 	static std::string ConfigString();
+	static void LoadConfig(const nlohmann::json& j);
 private:
 	static float strokeSize;
 	static PencilMode mode;

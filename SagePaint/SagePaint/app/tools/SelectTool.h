@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/ext/vector_int2.hpp>
 
+#include <nlohmann/json.hpp>
 #include <string>
 class SelectTool {
 public:
@@ -12,6 +13,7 @@ public:
 	static void SelectDragCommit();
 	static void ShowUI();
 	static std::string ConfigString();
+	static void LoadConfig(const nlohmann::json& j);
 private:
 	static glm::ivec2 downPos;
 	

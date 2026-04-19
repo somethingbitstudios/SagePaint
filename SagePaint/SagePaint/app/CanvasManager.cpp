@@ -1,5 +1,6 @@
 #include "CanvasManager.h"
 #include "shortcuts.h"
+bool CanvasManager::focusedOnCanvas = false;
 unsigned char CanvasManager::transparent[4] = { 0,0,0,0 };
 unsigned char CanvasManager::erasePreviewColor[4] = { 90,0,255,255 };
 

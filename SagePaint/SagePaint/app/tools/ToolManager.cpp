@@ -96,7 +96,7 @@ void ToolManager::ShowUI() {
 	}
 
 	ImGui::Separator();
-	if (ImGui::Button(CanvasManager::erase ? "Start erasing" : "Stop erasing")) {
+	if (ImGui::Button(CanvasManager::erase ? "Stop erasing" : "Start erasing")) {
 		CanvasManager::erase = !CanvasManager::erase;
 	}
 }

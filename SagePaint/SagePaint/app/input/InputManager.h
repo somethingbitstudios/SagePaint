@@ -31,6 +31,7 @@ public:
 	static void SetContext(Key_Context_Enum keyContext);
 	static inline glm::vec2 GetCursorPos() { return glm::vec2 { cursorX.load(), cursorY.load()}; }
 	static inline glm::vec2 GetCursorDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
+	
 
 	static const char* GetGLFWKeyName(int key);
 
@@ -38,11 +39,13 @@ public:
 	static inline float GetCursorXDelta() { return cursorX-cursorXold; }
 	static inline float GetCursorY() { return cursorY; }
 	static inline float GetCursorYDelta() { return cursorY-cursorYold; }
+
+	static InputMap keyMap;
 private:
 	static std::atomic<float> cursorX, cursorY;//WARN: not sure atomic is neccesary, test later
 	static std::atomic<float> cursorXold, cursorYold;
 	static std::vector<int> keyHeld;//has data for held keys
-	static InputMap keyMap; //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
+	 //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?
 };
 
