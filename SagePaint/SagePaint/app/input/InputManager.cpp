@@ -39,7 +39,7 @@ void InputManager::ShowUI() {
     }
   
     for (int k = 0; k < inputFunctions.size(); k++) {
-        ImGui::SetWindowFontScale(1.5f);
+        ImGui::SetWindowFontScale(1.5f); 
         ImGui::Text(inputFunctions[k].name.c_str());
         ImGui::SetWindowFontScale(1.f);
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + 400.0f);

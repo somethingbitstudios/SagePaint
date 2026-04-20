@@ -11,9 +11,11 @@ glm::ivec2 ShapeTool::downPos = { 0,0 };
 glm::ivec2 lastUpPos1 = { 0,0 };
 int ShapeTool::pointNumber = 3;
 float ShapeTool::angleOffset = 0;
-
+float ShapeTool::opacity = 1;
 void ShapeTool::ShapeStart()
 {
+
+	(*CanvasManager::obj->layers)[0]->opacity = opacity;
 	downPos = CanvasManager::GetRelativeCursorPos();
 }
 
@@ -53,17 +55,17 @@ void ShapeTool::ShapeRender(unsigned char* texture, int tex_w, int tex_h, glm::i
 {
 	if (mode == SHAPE_FAST) {
 		//top line
-		LineTool::LineRender(texture,tex_w,tex_h,startPos.x,startPos.y,endPos.x,startPos.y, strokeSize, color);
-		LineTool::LineRender(texture,tex_w,tex_h,startPos.x,endPos.y,endPos.x,endPos.y, strokeSize, color);
+		LineTool::LineRender(texture,tex_w,tex_h,startPos.x,startPos.y,endPos.x,startPos.y, strokeSize, color,1);
+		LineTool::LineRender(texture,tex_w,tex_h,startPos.x,endPos.y,endPos.x,endPos.y, strokeSize, color,1);
 		if (abs(startPos.y - endPos.y) > 1) {
 			if (startPos.y < endPos.y) {
-				LineTool::LineRender(texture, tex_w, tex_h, startPos.x, startPos.y + 1, startPos.x, endPos.y - 1, strokeSize, color);//
-				LineTool::LineRender(texture, tex_w, tex_h, endPos.x, startPos.y + 1, endPos.x, endPos.y - 1, strokeSize, color);//
+				LineTool::LineRender(texture, tex_w, tex_h, startPos.x, startPos.y + 1, startPos.x, endPos.y - 1, strokeSize, color,1);//
+				LineTool::LineRender(texture, tex_w, tex_h, endPos.x, startPos.y + 1, endPos.x, endPos.y - 1, strokeSize, color,1);//
 
 			}
 			else {
-				LineTool::LineRender(texture, tex_w, tex_h, startPos.x, startPos.y - 1, startPos.x, endPos.y + 1, strokeSize, color);//
-				LineTool::LineRender(texture, tex_w, tex_h, endPos.x, startPos.y - 1, endPos.x, endPos.y + 1, strokeSize, color);//
+				LineTool::LineRender(texture, tex_w, tex_h, startPos.x, startPos.y - 1, startPos.x, endPos.y + 1, strokeSize, color,1);//
+				LineTool::LineRender(texture, tex_w, tex_h, endPos.x, startPos.y - 1, endPos.x, endPos.y + 1, strokeSize, color,1);//
 
 			}
 			}
@@ -82,7 +84,7 @@ void ShapeTool::ShapeRender(unsigned char* texture, int tex_w, int tex_h, glm::i
 			float angle = (i*2 * M_PI) / pointNumber;
 			float cos1 = cos(angle); float sin1 = sin(angle);
 			glm::vec2 newPoint = {initPoint.x*cos1-initPoint.y*sin1,initPoint.y*cos1+initPoint.x*sin1};
-			LineTool::LineRender(texture, tex_w, tex_h, round(middlePos.x+lastPoint.x), round(middlePos.y+lastPoint.y), round(middlePos.x + newPoint.x), round(middlePos.y + newPoint.y), strokeSize, color);
+			LineTool::LineRender(texture, tex_w, tex_h, round(middlePos.x+lastPoint.x), round(middlePos.y+lastPoint.y), round(middlePos.x + newPoint.x), round(middlePos.y + newPoint.y), strokeSize, color,1);
 			lastPoint = newPoint;
 		}
 
@@ -99,7 +101,7 @@ void ShapeTool::ShapeRender(unsigned char* texture, int tex_w, int tex_h, glm::i
 			float angle = (i * 2 * M_PI) / pointNumber;
 			float cos1 = cos(angle); float sin1 = sin(angle);
 			glm::vec2 newPoint = { initPoint.x * cos1 - initPoint.y * sin1,initPoint.y * cos1 + initPoint.x * sin1 };
-			LineTool::LineRender(texture, tex_w, tex_h, round(middlePos.x + lastPoint.x), round(middlePos.y + lastPoint.y), round(middlePos.x + newPoint.x), round(middlePos.y + newPoint.y), strokeSize, color);
+			LineTool::LineRender(texture, tex_w, tex_h, round(middlePos.x + lastPoint.x), round(middlePos.y + lastPoint.y), round(middlePos.x + newPoint.x), round(middlePos.y + newPoint.y), strokeSize, color,1);
 			lastPoint = newPoint;
 
 		}
@@ -147,9 +149,21 @@ void ShapeTool::ShapeEnd()
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
 
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
-	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
 
-	ShapeRender(image->texture, image->width, image->height, downPos, lastUpPos1, CanvasManager::transparent, mode);
+	(*CanvasManager::obj->layers)[0]->opacity = 0.5f;
+
+	ImagePtr p = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
+
+	ImagePtr j = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;
+	if(CanvasManager::erase){
+		j->ClearOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0, opacity);
+	}
+	else {
+		j->CopyOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0, opacity);
+
+	}
+	
+	ShapeRender(p->texture, p->width, p->height, downPos, lastUpPos1, CanvasManager::transparent, mode);
 
 	/*float* color_float = CanvasManager::colorFloat;
 	//TODO: support width
@@ -157,7 +171,7 @@ void ShapeTool::ShapeEnd()
 	unsigned char color[4] = { color_float[0] * 255,color_float[1] * 255,color_float[2] * 255,color_float[3] * 255 };//make this only happen once per color setting
 	if (color[3] == 0)return;
 	*/
-
+	/*
 	unsigned char* color;
 	if (CanvasManager::erase) {
 		color = CanvasManager::transparent;
@@ -166,8 +180,9 @@ void ShapeTool::ShapeEnd()
 	else {
 		color = CanvasManager::color;
 	}
-	image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
-	ShapeRender(image->texture, image->width, image->height, downPos, upPos, color, mode);
+	p = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
+	ShapeRender(p->texture, p->width, p->height, downPos, upPos, color, mode);
+	*/
 
 	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
 	CanvasManager::obj->Changed(0);
@@ -180,9 +195,13 @@ ShapeMode ShapeTool::mode = SHAPE_NORMAL;
 void ShapeTool::ShowUI() {
 	ImGui::Separator();
 	ImGui::Text("Shape Settings:");
+	if (ImGui::InputFloat("opacity", &opacity, 0.1f, 0.2f, "%.2f")) {
+		opacity = std::max(0.0f, std::min(1.0f, opacity));
+	}
 	if (ImGui::InputFloat("line size", &strokeSize, 1, 2, " %.1f")) {
 		strokeSize = std::max(0.5f, strokeSize);
 	}
+	
 	if (ImGui::InputInt("point n.", &pointNumber, 1, 2)) {
 		pointNumber = std::max(3, pointNumber);
 	}

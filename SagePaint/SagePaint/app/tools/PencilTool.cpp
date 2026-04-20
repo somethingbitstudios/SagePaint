@@ -6,7 +6,7 @@
 #include <imgui.h>
 #include <algorithm>
 #include <sstream>
-
+float PencilTool::opacity = 1;
 //TODO: make this at least connect using the line tool
 void PencilTool::Stroke() {
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
@@ -16,7 +16,7 @@ void PencilTool::Stroke() {
 		
 		
 		if (CanvasManager::erase) {
-			color = CanvasManager::transparent;
+			color = CanvasManager::erasePreviewColor;
 			//TODO:override paint on top mode to always be replace color mode!
 		}
 		else {
@@ -29,9 +29,9 @@ void PencilTool::Stroke() {
 		glm::ivec2 pos = CanvasManager::GetRelativeCursorPos();
 		CanvasObjectPtr obj = CanvasManager::GetCanvas();
 
-		ImagePtr image = (*obj->layers)[obj->selectedLayer]->image;//WARN:hardcoded!
-		LineTool::LineRender(image->texture, image->width, image->height, lastPos.x, lastPos.y, pos.x, pos.y,strokeSize, color);
-
+		ImagePtr image = (*obj->layers)[0]->image;//WARN:hardcoded!
+		LineTool::LineRender(image->texture, image->width, image->height, lastPos.x, lastPos.y, pos.x, pos.y,strokeSize, color,1);
+		CanvasManager::obj->Changed(0);
 	}
 	else if (mode == PENCIL_SIMPLE) {
 		float* color_float = CanvasManager::colorFloat;
@@ -54,19 +54,23 @@ void PencilTool::Stroke() {
 		end_x = std::min(end_x, image->width - 1);
 		end_y = std::min(end_y, image->height - 1);
 		int difference_x = end_x - start_x;
+		unsigned char color2[] = { color[0] * opacity,color[1] * opacity,color[2] * opacity,color[3] * opacity };
+		float invopac = (1 - opacity);
 		for (int i = start_y; i <= end_y; i++) {
 			unsigned char* img = &image->texture[(start_x + i * image->width) * 4]; //should be faster than it being in the for bellow
 			for (int j = 0; j <= difference_x; j++) {
-				img[0] = color[0];
-				img[1] = color[1];
-				img[2] = color[2];
-				img[3] = color[3];
+
+				img[0] = color2[0]+img[0]*invopac;
+				img[1] = color2[1] + img[1] * invopac;
+				img[2] = color2[2] + img[2] * invopac;
+				img[3] = color2[3] + img[3] * invopac;
 				img += 4;
 
 
 
 			}
 		}
+		CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
 	}
 	/*
 	//TODO: optimize
@@ -105,14 +109,30 @@ void PencilTool::Stroke() {
 		}
 	}
 	*/
-	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
+	
 	
 
 }
 void PencilTool :: StrokeStart() {
-
+	(*CanvasManager::obj->layers)[0]->opacity = opacity;
 }
 void PencilTool::StrokeEnd() {
+	ImagePtr p = (*CanvasManager::obj->layers)[0]->image;
+	ImagePtr j = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;
+	if (CanvasManager::erase) {
+		j->ClearOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0, opacity);
+	}
+	else {
+		j->CopyOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0, opacity);
+
+	}
+	//	j->CopyOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0,opacity);
+	p->Clear(0, 0, p->width, p->height);
+	//copy 
+	(*CanvasManager::obj->layers)[0]->opacity = 0.5f;
+	CanvasManager::obj->Changed(0);
+	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
+
 	ProjectManager::Dirty();
 }
 float PencilTool::strokeSize = 1.0f;
@@ -121,6 +141,9 @@ PencilMode PencilTool::mode = PENCIL_NORMAL;
 void PencilTool::ShowUI() {
 	ImGui::Separator();
 	ImGui::Text("Pencil Settings:");
+	if (ImGui::InputFloat("opacity", &PencilTool::opacity, 0.1f, 0.2f, "%.2f")) {
+		opacity = std::max(0.0f,std::min(1.0f, opacity));
+	}
 	if (ImGui::InputFloat("size", &PencilTool::strokeSize, 1, 2, "%.1f")) {
 		strokeSize =std::max(0.5f, strokeSize);
 	}

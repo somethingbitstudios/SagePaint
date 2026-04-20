@@ -17,4 +17,5 @@ public:
 private:
 	static float strokeSize;
 	static PencilMode mode;
+	static float opacity;
 }; 

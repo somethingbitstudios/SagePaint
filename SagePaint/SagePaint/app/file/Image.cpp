@@ -73,7 +73,114 @@ void Image::Copy(unsigned char* src, int srcW, int srcH, int x, int y,int w,int 
         std::memcpy(this->texture + dstIndex, src + srcIndex, copy_w * bpp);
     }
 }
+void Image::CopyOverlay(unsigned char* src, int srcW, int srcH, int x, int y, int w, int h, int x2, int y2,float opacity)
+{
+    if (w < 0)w = srcW;
+    if (h < 0)h = srcH;
 
+    
+    const int bpp = 4;
+
+    int src_x = x;
+    int src_y = y;
+    int dst_x = x2;
+    int dst_y = y2;
+    int copy_w = w;
+    int copy_h = h;
+
+    if (src_x < 0) { copy_w += src_x; dst_x -= src_x; src_x = 0; }
+    if (src_y < 0) { copy_h += src_y; dst_y -= src_y; src_y = 0; }
+
+    if (dst_x < 0) { copy_w += dst_x; src_x -= dst_x; dst_x = 0; }
+    if (dst_y < 0) { copy_h += dst_y; src_y -= dst_y; dst_y = 0; }
+
+    if (src_x + copy_w > srcW) { copy_w = srcW - src_x; }
+    if (src_y + copy_h > srcH) { copy_h = srcH - src_y; }
+
+    if (dst_x + copy_w > this->width) { copy_w = this->width - dst_x; }
+    if (dst_y + copy_h > this->height) { copy_h = this->height - dst_y; }
+
+    if (copy_w <= 0 || copy_h <= 0) {
+        return;
+    }
+
+    for (int row = 0; row < copy_h; ++row)
+    {
+        int current_src_y = src_y + row;
+        int current_dst_y = dst_y + row;
+
+        unsigned char* srcPtr = src + (current_src_y * srcW + src_x) * bpp;
+        unsigned char* dstPtr = this->texture + (current_dst_y * this->width + dst_x) * bpp;
+
+        for (int col = 0; col < copy_w; ++col)
+        {
+            float srcA = (srcPtr[3] / 255.0f) * opacity;
+            float invA = 1.0f - srcA;
+
+            dstPtr[0] = (unsigned char)(srcPtr[0] * srcA + dstPtr[0] * invA);
+            dstPtr[1] = (unsigned char)(srcPtr[1] * srcA + dstPtr[1] * invA);
+            dstPtr[2] = (unsigned char)(srcPtr[2] * srcA + dstPtr[2] * invA);
+
+            dstPtr[3] = (unsigned char)(255 * (srcA + dstPtr[3] / 255.0f * invA));
+
+            srcPtr += bpp;
+            dstPtr += bpp;
+        }
+    }
+}
+
+void Image::ClearOverlay(unsigned char* src, int srcW, int srcH, int x, int y, int w, int h, int x2, int y2, float opacity)
+{
+    if (w < 0)w = srcW;
+    if (h < 0)h = srcH;
+
+
+    const int bpp = 4;
+
+    int src_x = x;
+    int src_y = y;
+    int dst_x = x2;
+    int dst_y = y2;
+    int copy_w = w;
+    int copy_h = h;
+
+    if (src_x < 0) { copy_w += src_x; dst_x -= src_x; src_x = 0; }
+    if (src_y < 0) { copy_h += src_y; dst_y -= src_y; src_y = 0; }
+
+    if (dst_x < 0) { copy_w += dst_x; src_x -= dst_x; dst_x = 0; }
+    if (dst_y < 0) { copy_h += dst_y; src_y -= dst_y; dst_y = 0; }
+
+    if (src_x + copy_w > srcW) { copy_w = srcW - src_x; }
+    if (src_y + copy_h > srcH) { copy_h = srcH - src_y; }
+
+    if (dst_x + copy_w > this->width) { copy_w = this->width - dst_x; }
+    if (dst_y + copy_h > this->height) { copy_h = this->height - dst_y; }
+
+    if (copy_w <= 0 || copy_h <= 0) {
+        return;
+    }
+
+    for (int row = 0; row < copy_h; ++row)
+    {
+        int current_src_y = src_y + row;
+        int current_dst_y = dst_y + row;
+
+        unsigned char* srcPtr = src + (current_src_y * srcW + src_x) * bpp;
+        unsigned char* dstPtr = this->texture + (current_dst_y * this->width + dst_x) * bpp;
+
+        for (int col = 0; col < copy_w; ++col)
+        {
+            float srcA = (srcPtr[3] / 255.0f) * opacity;
+            float invA = 1.0f - srcA;
+
+         
+            dstPtr[3] = (unsigned char)((dstPtr[3] * invA));
+
+            srcPtr += bpp;
+            dstPtr += bpp;
+        }
+    }
+}
 void Image::Clear(int x, int y, int w, int h)
 {
     const int bpp = 4;

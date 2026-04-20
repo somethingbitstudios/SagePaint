@@ -8,12 +8,13 @@
 #include <sstream>
 glm::ivec2 LineTool::downPos = { 0,0 };
 glm::ivec2 lastUpPos = { 0,0 };
-
+float LineTool::opacity = 1;
 void LineTool::LineStart() {
 	downPos = CanvasManager::GetRelativeCursorPos();
 	DLOG("Down pos")
 	DLOG(downPos.x)
 	DLOG(downPos.y)
+	(*CanvasManager::obj->layers)[0]->opacity = opacity;
 }
 
 void LineTool::LineEnd() {
@@ -22,20 +23,21 @@ void LineTool::LineEnd() {
 
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 
-	unsigned char* color;
+	
+
+	ImagePtr p = (*CanvasManager::obj->layers)[0]->image;
+	ImagePtr j = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;
 	if (CanvasManager::erase) {
-		color = CanvasManager::transparent;
-		//TODO:override paint on top mode to always be replace color mode!
+		j->ClearOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0, opacity);
 	}
 	else {
-		color = CanvasManager::color;
+		j->CopyOverlay(p->texture, p->width, p->height, 0, 0, p->width, p->height, 0, 0, opacity);
+
 	}
-	ImagePtr image = (*CanvasManager::obj->layers)[0]->image;//WARN:hardcoded!
+	LineRender(p->texture, p->width, p->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, strokeSize,CanvasManager::transparent);
 
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, lastUpPos.x, lastUpPos.y, strokeSize,CanvasManager::transparent);
-
-	image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
-	LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y, strokeSize, color);
+	//image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
+	//LineRender(image->texture, image->width, image->height, downPos.x, downPos.y, upPos.x, upPos.y, strokeSize, color);
 
 	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
 	CanvasManager::obj->Changed(0);
@@ -68,11 +70,14 @@ void LineTool::LinePreview() {
 	lastUpPos = upPos;
 }
 
-void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, int y0, int x1, int y1,float size, unsigned char color[4]) {
+void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, int y0, int x1, int y1,float size, unsigned char color[4],float opacity) {
 	// Treat size as diameter. Ensure a minimum radius so size 1 still draws a single pixel.
 	float radius = std::max(0.5f, size / 2.0f);
 	int r_ceil = static_cast<int>(std::ceil(radius));
 	float r_sq = radius * radius;
+
+	float invopac = 1 - opacity;
+	float color2[] = { color[0] * opacity,color[1] * opacity, color[2] * opacity, color[3] * opacity};
 
 	// Helper lambda to draw a filled circle (the brush tip) at a given point
 	auto drawBrush = [&](int cx, int cy) {
@@ -91,10 +96,10 @@ void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, in
 				// If the distance squared is within the radius squared, draw the pixel
 				if ((dx_px * dx_px + dy_py * dy_py) <= r_sq) {
 					int index = (px + py * tex_w) * 4;
-					texture[index] = color[0];
-					texture[index + 1] = color[1];
-					texture[index + 2] = color[2];
-					texture[index + 3] = color[3];
+					texture[index] = color2[0]+texture[index]*invopac;
+					texture[index + 1] = color2[1] + texture[index+1] * invopac;
+					texture[index + 2] = color2[2] + texture[index+2] * invopac;
+					texture[index + 3] = color2[3] + texture[index+3] * invopac;
 				}
 			}
 		}
@@ -208,11 +213,77 @@ void LineTool::LineRender(unsigned char* texture,int tex_w,int tex_h, int x0, in
 	*/
 }
 
+void LineTool::LineRender(unsigned char* texture, int tex_w, int tex_h, int x0, int y0, int x1, int y1, float size, unsigned char color[4]) {
+	// Treat size as diameter. Ensure a minimum radius so size 1 still draws a single pixel.
+	float radius = std::max(0.5f, size / 2.0f);
+	int r_ceil = static_cast<int>(std::ceil(radius));
+	float r_sq = radius * radius;
+
+	
+	// Helper lambda to draw a filled circle (the brush tip) at a given point
+	auto drawBrush = [&](int cx, int cy) {
+		// Calculate the bounding box for the brush, clamped strictly to texture bounds
+		int start_x = std::max(0, cx - r_ceil);
+		int end_x = std::min(tex_w - 1, cx + r_ceil);
+		int start_y = std::max(0, cy - r_ceil);
+		int end_y = std::min(tex_h - 1, cy + r_ceil);
+
+		// Fill pixels within the circle's radius
+		for (int py = start_y; py <= end_y; py++) {
+			for (int px = start_x; px <= end_x; px++) {
+				float dx_px = static_cast<float>(px - cx);
+				float dy_py = static_cast<float>(py - cy);
+
+				// If the distance squared is within the radius squared, draw the pixel
+				if ((dx_px * dx_px + dy_py * dy_py) <= r_sq) {
+					int index = (px + py * tex_w) * 4;
+					texture[index] = color[0];
+					texture[index + 1] = color[1];
+					texture[index + 2] = color[2];
+					texture[index + 3] = color[3];
+				}
+			}
+		}
+		};
+
+	// Standard DDA line calculation
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+
+	// The number of steps is based on the longest axis
+	int steps = std::max(std::abs(dx), std::abs(dy));
+
+	// Handle single-point dot (adx == 0 && ady == 0)
+	if (steps == 0) {
+		drawBrush(x0, y0);
+		return;
+	}
+
+	// Calculate how much to move per step
+	float x_inc = static_cast<float>(dx) / steps;
+	float y_inc = static_cast<float>(dy) / steps;
+
+	float curr_x = x0;
+	float curr_y = y0;
+
+	// Step along the line and stamp the brush at each point
+	for (int i = 0; i <= steps; i++) {
+		drawBrush(static_cast<int>(std::round(curr_x)), static_cast<int>(std::round(curr_y)));
+		curr_x += x_inc;
+		curr_y += y_inc;
+	}
+
+}
+
 float LineTool::strokeSize = 1;
 LineMode LineTool::mode = LINE_NORMAL;
+
 void LineTool::ShowUI() {
 	ImGui::Separator();
 	ImGui::Text("Line Settings:");
+	if (ImGui::InputFloat("opacity", &opacity, 0.1f, 0.2f, "%.2f")) {
+		opacity = std::max(0.0f, std::min(1.0f, opacity));
+	}
 	if (ImGui::InputFloat("size", &strokeSize, 1, 2, "%.1f")) {
 		strokeSize = std::max(0.5f, strokeSize);
 	}

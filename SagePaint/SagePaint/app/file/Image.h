@@ -11,6 +11,8 @@ public:
 
 	void Init();
 	void Copy(unsigned char * src,int srcW,int srcH,int x,int y,int w,int h,int x2,int y2);
+	void CopyOverlay(unsigned char * src,int srcW,int srcH,int x,int y,int w,int h,int x2,int y2,float opacity);
+	void ClearOverlay(unsigned char * src,int srcW,int srcH,int x,int y,int w,int h,int x2,int y2,float opacity);
 	void Clear(int x, int y, int w, int h);
 	unsigned char* texture;
 	int width;
