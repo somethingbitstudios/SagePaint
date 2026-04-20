@@ -8,4 +8,5 @@ public:
 	static void ShowUI();
 	static std::string ConfigString();
 	static void LoadConfig(const nlohmann::json& j);
+	static float opacity;
 };

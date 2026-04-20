@@ -31,7 +31,8 @@ static GLuint uv_buffer;
 static GLuint texture;
 
 static GLuint fbo;
-static GLuint compositeTexture;
+static GLuint compositeTexture[] = {0,0};
+static unsigned char pingpong = 0;
 
 static ShaderProgramPtr shader_composite_normal;
 static ShaderProgramPtr shader_final;
@@ -61,7 +62,7 @@ void CanvasModel::SwapLayerDown(int index) {
 void CanvasModel::SetZoom(float zoom, float forceNearestThreshold) {
 	//DLOG(fmod(zoom,1.f))
 
-	glBindTexture(GL_TEXTURE_2D, compositeTexture);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture[pingpong]);
 	if (
 		zoom >= forceNearestThreshold ||
 		fmod(zoom,1.0f)<0.001f //integer scaling
@@ -96,9 +97,9 @@ void CanvasModel::ResChange(unsigned int rX, unsigned int rY) {
 	
 }
 void CanvasModel::DeleteFBO() {
-	if (compositeTexture != 0) {
-		glDeleteTextures(1, &compositeTexture);
-		compositeTexture = 0; 
+	if (compositeTexture[pingpong] != 0) {
+		glDeleteTextures(2, compositeTexture);
+		compositeTexture[pingpong] = 0;
 	}
 
 	if (fbo != 0) {
@@ -112,14 +113,14 @@ void CanvasModel::CreateFBO() {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	glGenTextures(1, &compositeTexture);
-	glBindTexture(GL_TEXTURE_2D, compositeTexture);
+	glGenTextures(2, compositeTexture);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture[pingpong]);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resX, resY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, compositeTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, compositeTexture[pingpong], 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		IDLOG("ERROR: fbo error")
@@ -307,7 +308,7 @@ ImagePtr CanvasModel::Export() {
 	}
 	GLsizei bufSize = resX * resY * 4;
 	glGetTextureImage(
-		compositeTexture,        
+		compositeTexture[pingpong],
 		0,                      
 		GL_RGBA,                
 		GL_UNSIGNED_BYTE,        
@@ -393,7 +394,7 @@ void CanvasModel::DrawFbo() {
 		}
 	}
 
-	glBindTexture(GL_TEXTURE_2D, compositeTexture);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture[pingpong]);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -415,7 +416,7 @@ void CanvasModel::Draw(glm::mat4 m, glm::mat4 p) {
 	glUniformMatrix4fv(MVP_LOCATION, 1, GL_FALSE, (const GLfloat*)&mvp_screen);
 	glUniform2f(scale_location, (float)resX,resY / (float)resX);
 
-	glBindTexture(GL_TEXTURE_2D, compositeTexture);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture[pingpong]);
 
 	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

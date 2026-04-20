@@ -3,19 +3,18 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-class SelectTool {
+
+enum PickerMode {
+	SINGLELAYER,
+	ALL_LAYER
+};
+class PickerTool {
 public:
-	static void SelectStart();
-	static void SelectPreview();
-	static void SelectEnd();
-	static bool dragMode;
-	static void SelectDragRender();
-	static void SelectDragCommit();
+	static void Pick();
+	static PickerMode mode;
 	static void ShowUI();
 	static std::string ConfigString();
 	static void LoadConfig(const nlohmann::json& j);
-	static float opacity;
-private:
 	static glm::ivec2 downPos;
-	
+
 };

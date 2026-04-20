@@ -79,7 +79,7 @@ void SelectTool::SelectDragRender()
 	lastUpPos2 = upPos;
 
 }
-
+float SelectTool::opacity = 1;
 void SelectTool::SelectDragCommit()
 {
 	glm::ivec2 upPos = CanvasManager::GetRelativeCursorPos();
@@ -91,7 +91,7 @@ void SelectTool::SelectDragCommit()
 	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
 	image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
 
-	image->Copy(selectedAreaImage->texture, selectedAreaImage->width, selectedAreaImage->height, 0, 0, -1, -1, upPos.x, upPos.y);
+	image->CopyOverlay(selectedAreaImage->texture, selectedAreaImage->width, selectedAreaImage->height, 0, 0, -1, -1, upPos.x, upPos.y,opacity);
 	
 	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
 	//lastUpPos2 = upPos;
@@ -102,6 +102,9 @@ void SelectTool::SelectDragCommit()
 void SelectTool::ShowUI() {
 	ImGui::Separator();
 	ImGui::Text("Select Settings:");
+	if (ImGui::InputFloat("opacity", &opacity, 0.1f, 0.2f, "%.2f")) {
+		opacity = std::max(0.0f, std::min(1.0f, opacity));
+	}
 	/*if (ImGui::InputFloat("size", &PencilTool::strokeSize, 1, 2, "%.1f")) {
 		strokeSize = std::max(0.5f, strokeSize);
 	}

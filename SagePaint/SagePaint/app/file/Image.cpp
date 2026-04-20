@@ -112,8 +112,29 @@ void Image::CopyOverlay(unsigned char* src, int srcW, int srcH, int x, int y, in
         unsigned char* srcPtr = src + (current_src_y * srcW + src_x) * bpp;
         unsigned char* dstPtr = this->texture + (current_dst_y * this->width + dst_x) * bpp;
 
+        
         for (int col = 0; col < copy_w; ++col)
         {
+            float color3 = (srcPtr[3] / 255.0f) * opacity;
+            float invopac = (1 - color3);
+            float alpha2 = (dstPtr[3] / 255.0f) * invopac;
+            float alpha3 = color3 + alpha2;
+            if (alpha3 > 0.002) {
+                dstPtr[0] = round((srcPtr[0] * color3 + dstPtr[0] * alpha2) / alpha3);
+                dstPtr[1] = round((srcPtr[1] * color3 + dstPtr[1] * alpha2) / alpha3);
+                dstPtr[2] = round((srcPtr[2] * color3 + dstPtr[2] * alpha2) / alpha3);
+                dstPtr[3] = alpha3 * 255;
+
+
+            }
+            else {
+                dstPtr[0] = 0;
+                dstPtr[1] = 0;
+                dstPtr[2] = 0;
+                dstPtr[3] = 0;
+            }
+
+            /*
             float srcA = (srcPtr[3] / 255.0f) * opacity;
             float invA = 1.0f - srcA;
 
@@ -122,7 +143,7 @@ void Image::CopyOverlay(unsigned char* src, int srcW, int srcH, int x, int y, in
             dstPtr[2] = (unsigned char)(srcPtr[2] * srcA + dstPtr[2] * invA);
 
             dstPtr[3] = (unsigned char)(255 * (srcA + dstPtr[3] / 255.0f * invA));
-
+            */
             srcPtr += bpp;
             dstPtr += bpp;
         }

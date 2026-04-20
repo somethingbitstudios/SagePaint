@@ -8,6 +8,7 @@
 #include "../tools/ShapeTool.h"
 #include "../tools/SelectTool.h"
 #include "../ui/UIManager.h"
+#include "../tools/PickerTool.h"
 
 bool contains(std::vector<int> &v, int value) {
     for (int i = 0; i < v.size(); i++) {
@@ -131,6 +132,8 @@ void PointerDown() {
                 SelectTool::SelectStart();
             }
             break;
+        case TOOL_PICKER:
+            PickerTool::Pick();
         }
     }
      

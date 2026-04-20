@@ -7,6 +7,7 @@
 #include "SelectTool.h"
 #include "FillTool.h"
 #include "../CanvasManager.h"
+#include "PickerTool.h"
 std::vector<ImTextureID> icons;
 
 TOOL_TYPE ToolManager::tool_type = TOOL_PENCIL;
@@ -20,6 +21,7 @@ void ToolManager::Init() {
 	Icons::AddIcon("./icons/tool_shape40.png", icons);
 	Icons::AddIcon("./icons/tool_fill40.png", icons);
 	Icons::AddIcon("./icons/tool_select40.png", icons);
+	Icons::AddIcon("./icons/tool_picker40.png", icons);
 }
 void ToolManager::ShowUI() {
 	ImGui::Text("Tools:");
@@ -76,6 +78,17 @@ void ToolManager::ShowUI() {
 	)) {
 		SetTool(TOOL_SELECT);
 	}
+	ImGui::SameLine();
+	if (ImGui::ImageButton(
+		"SetToPickerButton",
+		icons[5],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
+		SetTool(TOOL_PICKER);
+	}
 
 	switch (tool_type) {
 	case TOOL_PENCIL:
@@ -93,6 +106,9 @@ void ToolManager::ShowUI() {
 	case TOOL_SELECT:
 		SelectTool::ShowUI();
 		break;	
+	case TOOL_PICKER:
+		PickerTool::ShowUI();
+		break;
 	}
 
 	ImGui::Separator();

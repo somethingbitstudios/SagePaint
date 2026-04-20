@@ -48,10 +48,15 @@ void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, un
         texture[startIdx + 3]
     };
 
+
     if (startColor[0] == color[0] && startColor[1] == color[1] &&
         startColor[2] == color[2] && startColor[3] == color[3]) {
         return;
     }
+
+    float color3 = (color[3] / 255.0f) * opacity;
+    float invopac = (1 - color3);
+
     //maybe I'll convert to inline function, but lambdas might be better here for now at least
     auto isTargetColor = [&](int px, int py) {
         int idx = (py * w + px) * 4;
@@ -63,10 +68,31 @@ void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, un
 
     auto setPixelColor = [&](int px, int py) {
         int idx = (py * w + px) * 4;
+      
+        float alpha2 = (texture[idx+3] / 255.0f) * invopac;
+        float alpha3 = color3 + alpha2;
+        unsigned char old[] = { texture[idx],texture[idx+1],texture[idx+2],texture[idx + 3] };
+        if (alpha3 > 0.002) {
+            texture[idx] = round((color[0] * color3 + texture[idx] * alpha2) / alpha3);
+            texture[idx + 1] = round((color[1] * color3 + texture[idx + 1] * alpha2) / alpha3);
+            texture[idx + 2] = round((color[2] * color3 + texture[idx + 2] * alpha2) / alpha3);
+            texture[idx+3] = alpha3 * 255;
+
+
+        }
+        else {
+            texture[idx] = 0;
+            texture[idx + 1] = 0;
+            texture[idx + 2] = 0;
+            texture[idx + 3] = 0;
+        }
+        return !(old[0] == texture[idx] && old[1] == texture[idx + 1] && old[2] == texture[idx + 2] && old[3] == texture[idx + 3]);
+        /*
         texture[idx] = color[0];
         texture[idx + 1] = color[1];
         texture[idx + 2] = color[2];
         texture[idx + 3] = color[3];
+        */
         };
 
     
@@ -82,31 +108,33 @@ void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, un
         
         //left
         if (cx > 0 && isTargetColor(cx - 1, cy)) {
-            setPixelColor(cx - 1, cy);
-            q.push({ cx - 1, cy });
+            bool result = setPixelColor(cx - 1, cy);
+            if(result) q.push({ cx - 1, cy });
         }
         //right
         if (cx < w - 1 && isTargetColor(cx + 1, cy)) {
-            setPixelColor(cx + 1, cy);
-            q.push({ cx + 1, cy });
+            bool result = setPixelColor(cx + 1, cy);
+            if (result) q.push({ cx + 1, cy });
         }
         //up
         if (cy > 0 && isTargetColor(cx, cy - 1)) {
-            setPixelColor(cx, cy - 1);
-            q.push({ cx, cy - 1 });
+            bool result = setPixelColor(cx, cy - 1);
+            if (result) q.push({ cx, cy - 1 });
         }
         //down
         if (cy < h - 1 && isTargetColor(cx, cy + 1)) {
-            setPixelColor(cx, cy + 1);
-            q.push({ cx, cy + 1 });
+            bool result = setPixelColor(cx, cy + 1);
+            if (result) q.push({ cx, cy + 1 });
         }
     }
 }
-
+float FillTool::opacity = 1;
 void FillTool::ShowUI() {
     ImGui::Separator();
     ImGui::Text("Fill Settings:");
-  
+    if (ImGui::InputFloat("opacity", &opacity, 0.1f, 0.2f, "%.2f")) {
+        opacity = std::max(0.0f, std::min(1.0f, opacity));
+    }
 
 }
 std::string FillTool::ConfigString()

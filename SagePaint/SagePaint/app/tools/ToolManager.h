@@ -4,7 +4,8 @@ enum TOOL_TYPE {
 	TOOL_LINE,
 	TOOL_SHAPE,
 	TOOL_FILL,
-	TOOL_SELECT
+	TOOL_SELECT,
+	TOOL_PICKER
 };
 class ToolManager {
 public:
