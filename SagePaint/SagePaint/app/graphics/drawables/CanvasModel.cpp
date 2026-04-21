@@ -15,7 +15,8 @@ static GLuint vertex_array;
 static GLuint vertex_buffer;
 //static GLuint mvp_location;
 
-static GLint texLoc;
+static GLint dstLoc;
+static GLint srcLoc;
 
 const GLuint POS_LOCATION = 0;
 const GLuint UV_LOCATION = 1;
@@ -30,8 +31,9 @@ static GLuint uv_buffer;
 //static std::vector<GLuint> textures;
 static GLuint texture;
 
-static GLuint fbo;
+static GLuint fbo[] = { 0,0 };
 static GLuint compositeTexture[] = {0,0};
+
 static unsigned char pingpong = 0;
 
 static ShaderProgramPtr shader_composite_normal;
@@ -97,31 +99,43 @@ void CanvasModel::ResChange(unsigned int rX, unsigned int rY) {
 	
 }
 void CanvasModel::DeleteFBO() {
-	if (compositeTexture[pingpong] != 0) {
+	if (compositeTexture[0] != 0) {
 		glDeleteTextures(2, compositeTexture);
-		compositeTexture[pingpong] = 0;
+		compositeTexture[0] = 0;
+		compositeTexture[1] = 0;
 	}
 
-	if (fbo != 0) {
-		glDeleteFramebuffers(1, &fbo);
-		fbo = 0; 
+	if (fbo[0] != 0) {
+		glDeleteFramebuffers(2, fbo);
+		fbo[0] = 0;
+		fbo[1] = 0;
 	}
 }
 void CanvasModel::CreateFBO() {
 	
 	
-	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
+	glGenFramebuffers(2, fbo);
 	glGenTextures(2, compositeTexture);
-	glBindTexture(GL_TEXTURE_2D, compositeTexture[pingpong]);
 
+
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo[0]);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resX, resY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, compositeTexture[0], 0);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		IDLOG("ERROR: fbo error")
+	}
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, compositeTexture[pingpong], 0);
-
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo[1]);
+	glBindTexture(GL_TEXTURE_2D, compositeTexture[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, resX, resY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, compositeTexture[1], 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		IDLOG("ERROR: fbo error")
 	}
@@ -321,79 +335,70 @@ ImagePtr CanvasModel::Export() {
 void CanvasModel::DrawFbo() {
 
 	//fbo render
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	glViewport(0, 0, resX, resY);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo[0]);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo[1]);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-
-
+	glViewport(0, 0, resX, resY);
 	glUseProgram(shader_composite_normal->id);
 
-	glEnable(GL_BLEND);
+	// DISABLE fixed-function blending. The shader is doing the blending now.
+	glDisable(GL_BLEND);
 
-	
-
-	glActiveTexture(GL_TEXTURE0);
-	texLoc = glGetUniformLocation(shader_composite_normal->id, "tex");
+	dstLoc = glGetUniformLocation(shader_composite_normal->id, "texDst");
+	srcLoc = glGetUniformLocation(shader_composite_normal->id, "texSrc");
 	GLuint opacityLoc = glGetUniformLocation(shader_composite_normal->id, "opacity");
 
-	glUniform1i(texLoc, 0);
 	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
 
 	glm::mat4 mvp_fbo = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
-
 	glUniformMatrix4fv(MVP_LOCATION, 1, GL_FALSE, (const GLfloat*)&mvp_fbo);
 
 	glBindVertexArray(vertex_array);
-	
+
+	// Initialize pingpong tracker
+
+
 	auto draw = [&](LayerPtr l) {
-		switch (l->blend) {//this is easier for now
-		case BLEND_Normal:
-			glBlendEquation(GL_FUNC_ADD);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			break;
+		// Bind the FBO we want to draw TO
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo[pingpong]);
 
-		case BLEND_Lighten:
-			glBlendEquation(GL_MAX);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-			break;
+		// Bind the accumulated background to texDst (Texture Unit 0)
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, compositeTexture[1 - pingpong]); // Read from the OTHER texture
+		glUniform1i(dstLoc, 0);
 
-		case BLEND_Darken://broken for now
-			glBlendEquation(GL_MIN);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			break; 
-
-		case BLEND_Add:
-			glBlendEquation(GL_FUNC_ADD);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-			break;
-
-		case BLEND_Multiply:
-			glBlendEquation(GL_FUNC_ADD);
-			glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-			break;
-		}
+		// Bind the new layer to texSrc (Texture Unit 1)
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, l->textureId);
+		glUniform1i(srcLoc, 1);
+
 		glUniform1f(opacityLoc, l->opacity);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		// Swap the pingpong flag for the next pass
+		pingpong = 1 - pingpong;
 		};
 
-	for (size_t i = 1; i < (*layers).size(); i++)
-	{
+	// Execute your specific layer rendering order
+	for (size_t i = 1; i < (*layers).size(); i++) {
 		if ((*layers)[i]->visible) {
-			draw((*layers)[i]);	
+			draw((*layers)[i]);
 		}
 	}
 
-	if ((*layers).size()>0 && (*layers)[0]->visible) {
-		if ((*layers)[0]->visible) {
-			draw((*layers)[0]);
-		}
+	if ((*layers).size() > 0 && (*layers)[0]->visible) {
+		draw((*layers)[0]);
 	}
 
+	pingpong = 1 - pingpong;
+
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, compositeTexture[pingpong]);
 	glGenerateMipmap(GL_TEXTURE_2D);
 

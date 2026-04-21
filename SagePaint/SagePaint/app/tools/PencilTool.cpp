@@ -114,9 +114,13 @@ void PencilTool::Stroke() {
 
 }
 void PencilTool :: StrokeStart() {
-	(*CanvasManager::obj->layers)[0]->opacity = opacity;
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
+
+	(*CanvasManager::obj->layers)[0]->opacity = opacity * (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->opacity;
 }
 void PencilTool::StrokeEnd() {
+	if (CanvasManager::obj->selectedLayer < 0)return;//TODO: no layer alert
+
 	ImagePtr p = (*CanvasManager::obj->layers)[0]->image;
 	ImagePtr j = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;
 	if (CanvasManager::erase) {

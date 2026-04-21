@@ -170,6 +170,7 @@ void CanvasObject::SwapLayerUp(int index) {
 			selectedLayer--;
 
 		model->selected_layer = selectedLayer;
+		model->DrawFbo();
 		//model->SwapLayerUp(index);
 		//Changed();
 	}
@@ -190,6 +191,7 @@ void CanvasObject::SwapLayerDown(int index) {
 
 
 		model->selected_layer = selectedLayer;
+		model->DrawFbo();
 		//model->SwapLayerDown(index);
 		//Changed();
 	}
