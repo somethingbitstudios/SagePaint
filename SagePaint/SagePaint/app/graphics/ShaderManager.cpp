@@ -29,9 +29,16 @@ void ShaderManager::Init()
 	
 	
 	ShaderPtr canvas_compositing_normal = std::make_shared<Shader>("./shaders/canvas/compositing/normal.frag");
-
 	Create("CANVAS_COMPOSITE_NORMAL", basic_vert, canvas_compositing_normal);
 	canvas_compositing_normal->Dispose();
+
+	ShaderPtr canvas_compositing_lighten = std::make_shared<Shader>("./shaders/canvas/compositing/lighten.frag");
+	Create("CANVAS_COMPOSITE_LIGHTEN", basic_vert, canvas_compositing_lighten);
+	canvas_compositing_lighten->Dispose();
+
+	ShaderPtr canvas_compositing_darken = std::make_shared<Shader>("./shaders/canvas/compositing/darken.frag");
+	Create("CANVAS_COMPOSITE_DARKEN", basic_vert, canvas_compositing_darken);
+	canvas_compositing_darken->Dispose();
 
 	//template if I want to add more complex shader
 	// WOULD require pingpong framebuffer though, seems annoying

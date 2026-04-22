@@ -7,7 +7,8 @@ enum BLEND_Type
 	BLEND_Darken,
 	BLEND_Lighten,
 	BLEND_Add,
-	BLEND_Multiply
+	BLEND_Multiply,
+	BLEND_Empty=1000
 };
 
 class Layer {

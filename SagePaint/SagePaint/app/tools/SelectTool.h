@@ -14,7 +14,7 @@ public:
 	static void ShowUI();
 	static std::string ConfigString();
 	static void LoadConfig(const nlohmann::json& j);
-	static float opacity;
+	static float opacity; 
 private:
 	static glm::ivec2 downPos;
 	

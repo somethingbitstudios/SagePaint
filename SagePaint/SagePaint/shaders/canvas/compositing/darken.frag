@@ -20,10 +20,10 @@ void main()
 
     vec3 outRGB;
     if (outAlpha > 0.0) {
-        //numbers based on human perception of lightness of r,g,b
+
         float Ls = dot(src.rgb, vec3(0.2126, 0.7152, 0.0722));
         float Ld = dot(dst.rgb, vec3(0.2126, 0.7152, 0.0722));
-        vec3 blendedRGB = (Ls > Ld) ? src.rgb : dst.rgb;    
+        vec3 blendedRGB = (Ls < Ld) ? src.rgb : dst.rgb;    
 
         outRGB = (src.rgb * src.a * (1.0 - dst.a) + 
                   blendedRGB * src.a * dst.a + 

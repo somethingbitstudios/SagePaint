@@ -37,6 +37,8 @@ static GLuint compositeTexture[] = {0,0};
 static unsigned char pingpong = 0;
 
 static ShaderProgramPtr shader_composite_normal;
+static ShaderProgramPtr shader_composite_lighten;
+static ShaderProgramPtr shader_composite_darken;
 static ShaderProgramPtr shader_final;
 
 void CanvasModel::Changed() {
@@ -273,6 +275,8 @@ CanvasModel::CanvasModel() :Model() {
 		glGenBuffers(1, &uv_buffer);
 
  		shader_composite_normal = ShaderManager::Get("CANVAS_COMPOSITE_NORMAL");
+ 		shader_composite_darken = ShaderManager::Get("CANVAS_COMPOSITE_DARKEN");
+ 		shader_composite_lighten = ShaderManager::Get("CANVAS_COMPOSITE_LIGHTEN");
 	
 		shader_final = ShaderManager::Get("CANVAS_FINAL");
 
@@ -344,36 +348,61 @@ void CanvasModel::DrawFbo() {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glViewport(0, 0, resX, resY);
-	glUseProgram(shader_composite_normal->id);
-
-	// DISABLE fixed-function blending. The shader is doing the blending now.
+	glViewport(0, 0, resX, resY);	
 	glDisable(GL_BLEND);
 
-	dstLoc = glGetUniformLocation(shader_composite_normal->id, "texDst");
-	srcLoc = glGetUniformLocation(shader_composite_normal->id, "texSrc");
-	GLuint opacityLoc = glGetUniformLocation(shader_composite_normal->id, "opacity");
-
-	glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
-
 	glm::mat4 mvp_fbo = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
-	glUniformMatrix4fv(MVP_LOCATION, 1, GL_FALSE, (const GLfloat*)&mvp_fbo);
 
 	glBindVertexArray(vertex_array);
 
-	// Initialize pingpong tracker
 
+	BLEND_Type blendType = BLEND_Empty;
+	GLuint opacityLoc = 0;
+	GLuint active_shader_id = 0;
+
+	auto change = [&](GLuint i) {
+		glUseProgram(i);
+		dstLoc = glGetUniformLocation(i, "texDst");
+		srcLoc = glGetUniformLocation(i, "texSrc");
+		opacityLoc = glGetUniformLocation(i, "opacity");
+
+		glUniform2f(scale_location, scale_width, scale_inverse_aspect_ratio);
+		glUniformMatrix4fv(MVP_LOCATION, 1, GL_FALSE, (const GLfloat*)&mvp_fbo);
+
+		};
 
 	auto draw = [&](LayerPtr l) {
-		// Bind the FBO we want to draw TO
+
+		if (l->blend != blendType) {
+			blendType = l->blend;
+			switch (l->blend) {
+			case BLEND_Normal:
+				active_shader_id = shader_composite_normal->id;
+				change(active_shader_id);
+				break;
+			case BLEND_Darken:
+				active_shader_id = shader_composite_darken->id;
+				change(active_shader_id);
+				break;
+			case BLEND_Lighten:
+				active_shader_id = shader_composite_lighten->id;
+				change(active_shader_id);
+				break;
+			default:
+				active_shader_id = shader_composite_normal->id;
+				change(active_shader_id);
+				break;
+			}
+
+		}
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo[pingpong]);
 
-		// Bind the accumulated background to texDst (Texture Unit 0)
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, compositeTexture[1 - pingpong]); // Read from the OTHER texture
 		glUniform1i(dstLoc, 0);
 
-		// Bind the new layer to texSrc (Texture Unit 1)
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, l->textureId);
 		glUniform1i(srcLoc, 1);
@@ -381,11 +410,9 @@ void CanvasModel::DrawFbo() {
 		glUniform1f(opacityLoc, l->opacity);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		// Swap the pingpong flag for the next pass
 		pingpong = 1 - pingpong;
 		};
 
-	// Execute your specific layer rendering order
 	for (size_t i = 1; i < (*layers).size(); i++) {
 		if ((*layers)[i]->visible) {
 			draw((*layers)[i]);
