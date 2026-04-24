@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include "../SettingsManager.h"
+#include <chrono>
 //#include "../CanvasManager.h"
 
 int InputManager::modsPersistent = -1;
@@ -57,31 +58,35 @@ void InputManager::ShowUI() {
             ImGui::SameLine();
 
             int& bound_glfw_key = pending_keys[k][action_type];
+         
             bool is_listening = (listening_row == k && listening_action == action_type);
-
+            
             std::string button_text = "None";
-            if (is_listening&&!wait_for_release) {
-                button_text = "Press any key...";
-            }
-            else if (bound_glfw_key != GLFW_KEY_UNKNOWN) {    
+
+            static bool consumeup = false;
+            if (bound_glfw_key != GLFW_KEY_UNKNOWN) {
                 std::string key_name = GetGLFWKeyName(bound_glfw_key);
-                if (key_name!="") {
+                if (key_name != "") {
                     button_text = key_name;
                 }
                 else {
-                    button_text = "ID:"+std::to_string(bound_glfw_key);
+                    button_text = "ID:" + std::to_string(bound_glfw_key);
                 }
-                
-
                
-            }
-
-            if (ImGui::Button(button_text.c_str(), ImVec2(120, 0))&&!wait_for_release) {
                 
-                listening_row = k;
-                listening_action = action_type;
-                bound_glfw_key = GLFW_KEY_UNKNOWN;
-                wait_for_release = true; 
+
+
+            }else if (is_listening&&!wait_for_release) {
+                button_text = "Press any key...";
+            }
+            if (ImGui::Button(button_text.c_str(), ImVec2(120, 0))&&!wait_for_release) {
+                if (consumeup&&bound_glfw_key==GLFW_MOUSE_BUTTON_LEFT) { consumeup = false; }
+                else {
+                    listening_row = k;
+                    listening_action = action_type;
+                    bound_glfw_key = GLFW_KEY_UNKNOWN;
+                    wait_for_release = true;
+                }
             }
 
             if (is_listening) {
@@ -116,6 +121,7 @@ void InputManager::ShowUI() {
                             }
                             else {
                                 bound_glfw_key = key_code+modsPersistent*1000;
+
                                 listening_row = -1; listening_action = -1;
                             }
                             input_detected = true;
@@ -127,6 +133,7 @@ void InputManager::ShowUI() {
                         for (int mouse_btn = GLFW_MOUSE_BUTTON_1; mouse_btn <= GLFW_MOUSE_BUTTON_LAST; mouse_btn++) {
                             if (glfwGetMouseButton(my_window, mouse_btn) == GLFW_PRESS) {
                                 bound_glfw_key = mouse_btn + modsPersistent * 1000;
+                                consumeup = true;
                                 listening_row = -1; listening_action = -1;
                                 break;
                             }
@@ -240,7 +247,7 @@ std::vector<int> InputManager::keyHeld;
 std::string InputManager::GetGLFWKeyName(int key) {
     int mod = key / 1000;
     key -= mod * 1000;
-    std::string keyString;
+    std::string keyString="?";
     std::string modString;
 
 
@@ -254,12 +261,8 @@ std::string InputManager::GetGLFWKeyName(int key) {
     case 6: modString = "Ctrl + Alt + "; break;
     case 7: modString = "Ctrl + Alt + Shift + "; break;
     }
-    const char* name = nullptr;
-    if (key >= 65) {
-        name = glfwGetKeyName(key, 0);
-    }
-    if (name!=nullptr) { keyString = name; }
-    else {
+    
+    
         switch (key) {
         case GLFW_MOUSE_BUTTON_LEFT: keyString = "Mouse left"; break;
         case GLFW_MOUSE_BUTTON_MIDDLE: keyString = "Mouse middle"; break;
@@ -338,7 +341,12 @@ std::string InputManager::GetGLFWKeyName(int key) {
         case GLFW_KEY_9: keyString = "9"; break;
         case GLFW_KEY_0: keyString = "0"; break;
         }
-    }
+    
+        if (keyString == "?") {
+            const char* name = glfwGetKeyName(key, 0);
+
+            if (name) { keyString = name; }
+        }
     
     return (modString+keyString);
 }

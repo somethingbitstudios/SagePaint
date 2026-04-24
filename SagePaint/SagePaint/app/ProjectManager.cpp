@@ -14,13 +14,15 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "SettingsManager.h"
 
 enum ProjectAction {
 	NONE,
 	SAVE,
 	OPEN,
 	EXIT,
-	NEW
+	NEW,
+	OPENBUFFEREDPATH
 };
 
 bool ProjectManager::dirty = false;
@@ -32,6 +34,7 @@ std::string ProjectManager::fullPath = "C:\\temp\\new.sagepaint";
 
 
 ProjectAction bufferedAction = NONE;
+std::string bufferedPath = "";
 bool show_exit_popup = false;
 bool show_new_popup = false;
 bool show_save_popup = false;
@@ -63,11 +66,34 @@ bool ProjectManager::ShowFileUI()
 		if (ImGui::MenuItem("Open", "Shortcut")) {
 			if (dirty) {
 				show_opensave_popup = true;
-				//bufferedAction = SAVE;
+				bufferedAction = OPEN;
 			}
 			else {
 				show_open_popup = true;
 			}
+		}
+		if (ImGui::BeginMenu("Open Recent"))
+		{
+			for (size_t i = 0; i < SettingsManager::recentFiles.size(); ++i)
+			{
+				const std::string& file = SettingsManager::recentFiles[i];
+
+				if (ImGui::MenuItem(file.c_str()))
+				{
+					if (dirty)
+					{
+						show_opensave_popup = true;
+						bufferedAction = OPENBUFFEREDPATH;
+						bufferedPath = file; 
+					}
+					else
+					{
+						Open(file);
+					}
+				}
+			}
+
+			ImGui::EndMenu();
 		}
 		if (ImGui::MenuItem("Save", "Shortcut")) {
 			if (dirty) {
@@ -279,7 +305,9 @@ bool ProjectManager::ShowFileUI()
 
 			if (ImGui::Button("Save", ImVec2(120, 0)))
 			{
+
 				Save(save_filename);
+				SettingsManager::SaveProjectPathToRecent();
 				if (bufferedAction == OPEN) {
 					bufferedAction = NONE;
 					show_open_popup = true;
@@ -324,8 +352,8 @@ bool ProjectManager::ShowFileUI()
 				if (ImGui::Button("Save", ImVec2(120, 0))) {
 
 					show_save_popup = true;
-
-					bufferedAction = OPEN;
+					
+					//bufferedAction = OPEN;
 					ImGui::CloseCurrentPopup();
 
 				}
@@ -333,13 +361,18 @@ bool ProjectManager::ShowFileUI()
 				if (ImGui::Button("Save As", ImVec2(120, 0))) {
 
 					show_save_popup = true;
-					bufferedAction = OPEN;
+					//bufferedAction = OPEN;
 					ImGui::CloseCurrentPopup();
 
 				}
 				if (ImGui::Button("Skip", ImVec2(120, 0))) {
+					if (bufferedAction == OPENBUFFEREDPATH) {
+						Open(bufferedPath);
+					}
+					else {
+						show_open_popup = true;
 
-					show_open_popup = true;
+					}
 					ImGui::CloseCurrentPopup();
 					
 				}
@@ -348,6 +381,7 @@ bool ProjectManager::ShowFileUI()
 
 
 				if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+					bufferedAction = NONE;
 					ImGui::CloseCurrentPopup();
 				}
 
@@ -667,6 +701,7 @@ bool ProjectManager::Open(std::string path)
 	
 	projectDataDirty = true;
 	dirty = false;
+	SettingsManager::SaveProjectPathToRecent();
 	
 return true;
 }

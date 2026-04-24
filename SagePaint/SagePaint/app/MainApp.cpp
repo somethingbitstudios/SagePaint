@@ -105,12 +105,21 @@ void MainApp() {
 	SettingsManager::LoadToolConfig();
 	SettingsManager::LoadBindingConfig();
 
+
 	//ProjectManager::Open("C:\\temp\\new.sagepaint"); //recent?
 	UIManager::Init();
 	ToolManager::Init();
 
-	ProjectManager::New();
-
+	SettingsManager::LoadRecentProjectPaths();
+	if (SettingsManager::openLatest) {
+		if (SettingsManager::OpenRecent(0)) {
+			ProjectManager::New();
+		}
+	}
+	else {
+		ProjectManager::New();
+	}
+	
 	/*
 	//load some image, replace with CanvasManager call 
 	ImagePtr images[] = {

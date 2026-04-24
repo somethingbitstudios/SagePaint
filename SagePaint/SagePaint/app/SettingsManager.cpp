@@ -12,9 +12,123 @@
 #include <imgui.h>
 #include "input/InputFunctions.h"
 #include <nlohmann/json.hpp>
-
+#include "ProjectManager.h"
 bool SettingsManager::showWindow=false;
 bool SettingsManager::openLatest = true;
+
+const int recentFileLenght = 64;
+std::vector<std::string> SettingsManager::recentFiles;
+
+bool SettingsManager::OpenRecent(int index) {
+    if (index < recentFileLenght && index >= 0&&index<recentFiles.size()) {
+        ProjectManager::Open(recentFiles[index]);
+        return false;
+    }
+    return true;
+}
+void SettingsManager::LoadRecentProjectPaths() {
+    namespace fs = std::filesystem;
+    //WARN: windows hardcode moment
+    const char* userProfile = std::getenv("USERPROFILE");
+
+    if (userProfile == nullptr) {
+        DLOG("user not found");
+        return;
+    }
+
+    fs::path configDir = fs::path(userProfile) / "AppData" / "Local" / "SagePaint";
+    fs::path recentsFile = configDir / "recent.conf";
+
+    if (!fs::exists(recentsFile)) {
+        DLOG("recent list file not found.");
+        return;
+    }
+
+    std::ifstream in(recentsFile);
+    if (in.is_open()) {
+        recentFiles.clear();
+        try {
+            nlohmann::json j;
+            in >> j;
+
+            if (j.contains("recentFiles") && j["recentFiles"].is_array()) {
+                for (const auto& recFile : j["recentFiles"]) {
+                    if (!recFile.contains("path")) continue;
+
+                    std::string path = recFile["path"].get<std::string>();
+                    recentFiles.push_back(path);
+                }
+            }
+           
+        }
+        catch (const nlohmann::json::exception& e) {
+            // Catches both parse_error and type_error
+            DLOG("JSON Error (recent.conf): " << e.what());
+        }
+        in.close();
+    }
+    else {
+        DLOG("ERROR: READING FILE " << recentsFile.string());
+    }
+}
+
+
+void SettingsManager::SaveProjectPathToRecent()
+{
+    LoadRecentProjectPaths();
+
+    namespace fs = std::filesystem;
+    //WARN: windows hardcode moment
+    const char* userProfile = std::getenv("USERPROFILE");
+
+    if (userProfile == nullptr) {
+        DLOG("user not found")
+            return;
+    }
+
+    fs::path configDir = fs::path(userProfile) / "AppData" / "Local" / "SagePaint";
+    fs::path configFile = configDir / "recent.conf";
+
+    std::error_code ec;
+    fs::create_directories(configDir, ec);
+    if (ec) {
+        DLOG("Failed to create directory: " << ec.message());
+        return;
+    }
+
+    std::ofstream out(configFile);
+    if (out.is_open()) {
+
+        std::string fixedPath = ProjectManager::fullPath;
+        std::replace(fixedPath.begin(), fixedPath.end(), '\\', '/');
+        out << R"({
+    "recentFiles": [
+      )";
+        out << "{\n";
+        out << "         \"path\": \"" << fixedPath;
+        out << "\"\n      }";
+        std::string lastPath = fixedPath;
+        int len = std::min(recentFileLenght-1, (int)recentFiles.size());
+        for (int i = 0; i < len; i++) {
+            if (recentFiles[i] != lastPath) {
+                out << ",\n      {\n";
+                out << "         \"path\": \"" << recentFiles[i];
+                out << "\"\n      }";
+            }
+            lastPath = recentFiles[i];
+            
+        }
+
+        
+        out << "\n   ]";
+        out << "\n}";
+
+        out.close();
+    }
+    else {
+        DLOG("Error writing to file")
+    }
+}
 
 void SettingsManager::LoadConfig()
 {
