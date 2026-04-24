@@ -2,7 +2,7 @@
 #include "app/MainApp.h"
 
 #ifdef HIDE_CONSOLE
-int WinMain()
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	MainApp();
 	return 0;

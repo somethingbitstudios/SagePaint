@@ -33,7 +33,7 @@ public:
 	static inline glm::vec2 GetCursorDelta() { return glm::vec2{ cursorX-cursorXold, cursorY-cursorYold }; }
 	
 
-	static const char* GetGLFWKeyName(int key);
+	static std::string GetGLFWKeyName(int key);
 
 	static inline float GetCursorX() { return cursorX; }
 	static inline float GetCursorXDelta() { return cursorX-cursorXold; }
@@ -44,7 +44,8 @@ public:
 private:
 	static std::atomic<float> cursorX, cursorY;//WARN: not sure atomic is neccesary, test later
 	static std::atomic<float> cursorXold, cursorYold;
-	static std::vector<int> keyHeld;//has data for held keys
+	static std::vector<int> keyHeld;
+	static int modsPersistent;
 	 //have an extra immutable keymap for menus so no softlocks happen, it has no shortcuts
 	//escape not rebindable?
 };

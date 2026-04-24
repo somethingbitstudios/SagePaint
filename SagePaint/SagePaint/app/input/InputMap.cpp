@@ -23,22 +23,27 @@ void InputMap::Init() {
 	//inputFunctions[1] = { ClickUI, "ClickUI", "does click in UI",  2 };
 	keyMap.clear();
 	//adds empty values for all keys, at least 32-348 for keys, and add some for mouse at 1,2 maybe
-	for (int i = 32; i < 349;i++) {
-		
-		keyMap[i] = KeyAction{};
+	for (int j = 0; j < 8000; j += 1000) {
+		for (int i = 32; i < 349; i++) {
+
+			keyMap[i+j] = KeyAction{};
+		}
+		keyMap[0+j] = KeyAction{};//mouse left
+		keyMap[1+j] = KeyAction{};//mouse middle
+		keyMap[2+j] = KeyAction{};//mouse right
 	}
-	keyMap[0] = KeyAction{};//mouse left
-	keyMap[1] = KeyAction{};//mouse middle
-	keyMap[2] = KeyAction{};//mouse right
+		
+	
 }
-bool InputMap::Action(int key, int action, int mods) {
-	//DLOG("[INPUT] Key: " << key << " Action: " << action)
+bool InputMap::Action(int key, int action) {
+		//DLOG("[INPUT] Key: " << key << " mods: " << mods)
+		//DLOG("[IN]: "<< key)
 		if (action == 1) {//pressed
-			if (keyMap[key].mode) { //execute all funcs that are in context
+			if (keyMap[key].mode) { //execute all funcs that are in context (ctrl/shift etc.
 				int index = -1;
 				int priority = -999;
 				for (int i = 0; i < keyMap[key].funcs.size(); i++) {
-					if (keyMap[key].funcs[i].context == KEY_CONTEXT_DEFAULT || keyMap[key].funcs[i].context == kc) {
+					if ((int)keyMap[key].funcs[i].context == KEY_CONTEXT_DEFAULT/* || keyMap[key].funcs[i].context == kc*/) {
 						if (keyMap[key].funcs[i].priority >= priority) {
 							index = i;
 							priority = keyMap[key].funcs[i].priority;
@@ -46,13 +51,15 @@ bool InputMap::Action(int key, int action, int mods) {
 					}
 				}
 				if (index >= 0) {
+
+					
 					keyMap[key].funcs[index].func();
 				}
 				
 			}
 			else { //execute the func with highest priority in context
 				for (int i = 0; i < keyMap[key].funcs.size(); i++) {
-					if (keyMap[key].funcs[i].context == KEY_CONTEXT_DEFAULT || keyMap[key].funcs[i].context == kc) {
+					if ((int)keyMap[key].funcs[i].context == KEY_CONTEXT_DEFAULT /* || keyMap[key].funcs[i].context == kc*/) {
 						keyMap[key].funcs[i].func();
 					}
 				}
@@ -65,7 +72,7 @@ bool InputMap::Action(int key, int action, int mods) {
 				int index = -1;
 				int priority = -999;
 				for (int i = 0; i < keyMap[key].funcsRelease.size(); i++) {
-					if (keyMap[key].funcsRelease[i].context == KEY_CONTEXT_DEFAULT || keyMap[key].funcsRelease[i].context == kc) {
+					if ((int)keyMap[key].funcsRelease[i].context == KEY_CONTEXT_DEFAULT/* || keyMap[key].funcsRelease[i].context == kc*/) {
 						if (keyMap[key].funcsRelease[i].priority >= priority) {
 							index = i;
 							priority = keyMap[key].funcsRelease[i].priority;
@@ -78,7 +85,7 @@ bool InputMap::Action(int key, int action, int mods) {
 			}
 			else { //execute the func with highest priority in context
 				for (int i = 0; i < keyMap[key].funcsRelease.size(); i++) {
-					if (keyMap[key].funcsRelease[i].context == KEY_CONTEXT_DEFAULT || keyMap[key].funcsRelease[i].context == kc) {
+					if ((int)keyMap[key].funcsRelease[i].context == KEY_CONTEXT_DEFAULT /*|| keyMap[key].funcsRelease[i].context == kc*/) {
 						keyMap[key].funcsRelease[i].func();
 					}
 				}
@@ -89,7 +96,7 @@ bool InputMap::Action(int key, int action, int mods) {
 				int index = -1;
 				int priority = -999;
 				for (int i = 0; i < keyMap[key].funcsHold.size(); i++) {
-					if (keyMap[key].funcsHold[i].context == KEY_CONTEXT_DEFAULT || keyMap[key].funcsHold[i].context == kc) {
+					if ((int)keyMap[key].funcsHold[i].context == KEY_CONTEXT_DEFAULT /*|| keyMap[key].funcsHold[i].context == kc*/) {
 						if (keyMap[key].funcsHold[i].priority >= priority) {
 							index = i;
 							priority = keyMap[key].funcsHold[i].priority;
@@ -102,7 +109,7 @@ bool InputMap::Action(int key, int action, int mods) {
 			}
 			else { //execute the func with highest priority in context
 				for (int i = 0; i < keyMap[key].funcsHold.size(); i++) {
-					if (keyMap[key].funcsHold[i].context == KEY_CONTEXT_DEFAULT || keyMap[key].funcsHold[i].context == kc) {
+					if ((int)keyMap[key].funcsHold[i].context == KEY_CONTEXT_DEFAULT /* || keyMap[key].funcsHold[i].context == kc*/) {
 						keyMap[key].funcsHold[i].func();
 					}
 				}
@@ -179,7 +186,14 @@ void InputMap::Default(int defaultType) {
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].funcsHold.emplace_back(a);
 		InitKeyFunction(GLFW_MOUSE_BUTTON_RIGHT, 2, &a, 0, KEY_CONTEXT_DEFAULT, "DragUp");
 		keyMap[GLFW_MOUSE_BUTTON_RIGHT].funcsRelease.emplace_back(a);
-
+		/*
+		GLFW_KEY_LEFT_CONTROL
+		GLFW_KEY_RIGHT_CONTROL
+		GLFW_KEY_LEFT_SHIFT
+		GLFW_KEY_RIGHT_SHIFT
+		GLFW_KEY_LEFT_ALT
+		GLFW_KEY_RIGHT_ALT
+		*/
 
 		keyMap[GLFW_KEY_W].mode = false; //not additive, override
 
@@ -191,6 +205,7 @@ void InputMap::Default(int defaultType) {
 		InitKeyFunction(GLFW_KEY_S, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomIn");
 		keyMap[GLFW_KEY_S].funcs.emplace_back(a);
 
+		
 		break;
 	}
 }

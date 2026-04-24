@@ -17,6 +17,7 @@ bool contains(std::vector<int> &v, int value) {
     return false;
 }
 void FunctionData::AddBind(int keyid,int mode) {
+
     if (mode == 0) { //DOWN
         if (!contains(key, keyid)) {
             DLOG("ADDED")

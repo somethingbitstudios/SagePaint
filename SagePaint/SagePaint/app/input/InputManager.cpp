@@ -5,6 +5,8 @@
 #include <imgui.h>
 #include "../SettingsManager.h"
 //#include "../CanvasManager.h"
+
+int InputManager::modsPersistent = -1;
 InputManager::InputManager() {
 
 }
@@ -61,14 +63,17 @@ void InputManager::ShowUI() {
             if (is_listening&&!wait_for_release) {
                 button_text = "Press any key...";
             }
-            else if (bound_glfw_key != GLFW_KEY_UNKNOWN) {
-                const char* key_name = GetGLFWKeyName(bound_glfw_key);
-                if (key_name) {
+            else if (bound_glfw_key != GLFW_KEY_UNKNOWN) {    
+                std::string key_name = GetGLFWKeyName(bound_glfw_key);
+                if (key_name!="") {
                     button_text = key_name;
                 }
                 else {
-                    button_text = "Key ID: " + std::to_string(bound_glfw_key);
+                    button_text = "ID:"+std::to_string(bound_glfw_key);
                 }
+                
+
+               
             }
 
             if (ImGui::Button(button_text.c_str(), ImVec2(120, 0))&&!wait_for_release) {
@@ -88,9 +93,14 @@ void InputManager::ShowUI() {
                     for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; i++) {
                         if (glfwGetMouseButton(my_window, i) == GLFW_PRESS) is_anything_down = true;
                     }
-                    for (int i = GLFW_KEY_SPACE; i <= GLFW_KEY_LAST; i++) {
-                        if (glfwGetKey(my_window, i) == GLFW_PRESS) is_anything_down = true;
-                    }
+                    DLOG("dunk")
+                    for (int i = GLFW_KEY_SPACE; i <= GLFW_KEY_KP_EQUAL; i++) {//excludes
+                        if (glfwGetKey(my_window, i) == GLFW_PRESS) {
+                            is_anything_down = true;
+                            DLOG("func")
+
+                        }
+                        }
 
                     if (!is_anything_down) {
                         wait_for_release = false;
@@ -99,13 +109,13 @@ void InputManager::ShowUI() {
                 else {
                     bool input_detected = false;
 
-                    for (int key_code = GLFW_KEY_SPACE; key_code <= GLFW_KEY_LAST; key_code++) {
+                    for (int key_code = GLFW_KEY_SPACE; key_code <= GLFW_KEY_KP_EQUAL; key_code++) {
                         if (glfwGetKey(my_window, key_code) == GLFW_PRESS) {
                             if (key_code == GLFW_KEY_ESCAPE) {
                                 listening_row = -1; listening_action = -1;
                             }
                             else {
-                                bound_glfw_key = key_code;
+                                bound_glfw_key = key_code+modsPersistent*1000;
                                 listening_row = -1; listening_action = -1;
                             }
                             input_detected = true;
@@ -116,7 +126,7 @@ void InputManager::ShowUI() {
                     if (!input_detected) {
                         for (int mouse_btn = GLFW_MOUSE_BUTTON_1; mouse_btn <= GLFW_MOUSE_BUTTON_LAST; mouse_btn++) {
                             if (glfwGetMouseButton(my_window, mouse_btn) == GLFW_PRESS) {
-                                bound_glfw_key = mouse_btn;
+                                bound_glfw_key = mouse_btn + modsPersistent * 1000;
                                 listening_row = -1; listening_action = -1;
                                 break;
                             }
@@ -129,7 +139,8 @@ void InputManager::ShowUI() {
 
             if (ImGui::Button("Add bind")) {
                 if (bound_glfw_key != GLFW_KEY_UNKNOWN) {
-                    inputFunctions[k].AddBind(bound_glfw_key, action_type);
+                   
+                    inputFunctions[k].AddBind(bound_glfw_key, action_type);//handle key being > 1000
                     bound_glfw_key = GLFW_KEY_UNKNOWN; 
                 }
             }
@@ -147,8 +158,9 @@ void InputManager::ShowUI() {
                 ImGui::PopID();
 
                 ImGui::SameLine();
-                const char* bound_name = GetGLFWKeyName(current_binds[i]);
-                ImGui::TextColored(ImVec4(0.8, 0, 0.8, 1), "%s", bound_name ? bound_name : "Unknown");
+                std::string bound_name = GetGLFWKeyName(current_binds[i]);
+                ImGui::TextColored(ImVec4(0.8, 0, 0.8, 1), "%s", !bound_name.empty() ? bound_name.c_str() : "Unknown");
+            
             }
 
             ImGui::PopID(); 
@@ -172,21 +184,27 @@ void InputManager::LoadInputMap(std::string path) {
 
 }
 void InputManager::Input(int key, int action, int mods) {
+    key += mods * 1000;
 	//key.held = true;
 	if (action==1) {
 		keyHeld.emplace_back(key);
+        modsPersistent = mods;
+        //DLOG("mods: "<<mods)
 	}
 	else if (action==0){//key.held = false;
-		auto it = std::find(keyHeld.begin(), keyHeld.end(), key);
-		if (it != keyHeld.end()) {
-			keyHeld.erase(it);
-		}
+        modsPersistent = 0;
+        auto it = std::find_if(keyHeld.begin(), keyHeld.end(),
+            [&](const auto& p) { return p%1000 == key%1000;/*any mods*/ });
+
+        if (it != keyHeld.end()) {
+            keyHeld.erase(it);
+        }
 	}
-	keyMap.Action(key, action, mods);
+	keyMap.Action(key, action);
 }
 void InputManager::ProcessHeld() {
 	for (int i = 0; i < keyHeld.size(); i++) {
-		keyMap.Action(keyHeld[i], 3, 0);//WARN: held inputs have NO mods for now, which means you need to manually check if ctrl etc.
+		keyMap.Action(keyHeld[i], 3);//WARN: held inputs have NO mods for now, which means you need to manually check if ctrl etc.
 	}
 }
 void InputManager::SetContext(Key_Context_Enum keyContext) {
@@ -219,74 +237,108 @@ InputMap InputManager::keyMap;
 std::vector<int> InputManager::keyHeld;
 
 
-const char* InputManager::GetGLFWKeyName(int key) {
-   
+std::string InputManager::GetGLFWKeyName(int key) {
+    int mod = key / 1000;
+    key -= mod * 1000;
+    std::string keyString;
+    std::string modString;
 
-    switch (key) {
-    case GLFW_MOUSE_BUTTON_LEFT: return "Mouse left";
-    case GLFW_MOUSE_BUTTON_MIDDLE: return "Mouse middle";
-    case GLFW_MOUSE_BUTTON_RIGHT: return "Mouse right";
 
-    case GLFW_KEY_SPACE: return "Space";
-    case GLFW_KEY_ESCAPE: return "Escape";
-    case GLFW_KEY_ENTER: return "Enter";
-    case GLFW_KEY_TAB: return "Tab";
-    case GLFW_KEY_BACKSPACE: return "Backspace";
-    case GLFW_KEY_INSERT: return "Insert";
-    case GLFW_KEY_DELETE: return "Delete";
-    case GLFW_KEY_RIGHT: return "Right Arrow";
-    case GLFW_KEY_LEFT: return "Left Arrow";
-    case GLFW_KEY_DOWN: return "Down Arrow";
-    case GLFW_KEY_UP: return "Up Arrow";
-    case GLFW_KEY_PAGE_UP: return "Page Up";
-    case GLFW_KEY_PAGE_DOWN: return "Page Down";
-    case GLFW_KEY_HOME: return "Home";
-    case GLFW_KEY_END: return "End";
-    case GLFW_KEY_CAPS_LOCK: return "Caps Lock";
-    case GLFW_KEY_SCROLL_LOCK: return "Scroll Lock";
-    case GLFW_KEY_NUM_LOCK: return "Num Lock";
-    case GLFW_KEY_PRINT_SCREEN: return "Print Screen";
-    case GLFW_KEY_PAUSE: return "Pause";
-    case GLFW_KEY_LEFT_SHIFT: return "Left Shift";
-    case GLFW_KEY_LEFT_CONTROL: return "Left Ctrl";
-    case GLFW_KEY_LEFT_ALT: return "Left Alt";
-    case GLFW_KEY_LEFT_SUPER: return "Left Super";
-    case GLFW_KEY_RIGHT_SHIFT: return "Right Shift";
-    case GLFW_KEY_RIGHT_CONTROL: return "Right Ctrl";
-    case GLFW_KEY_RIGHT_ALT: return "Right Alt";
-    case GLFW_KEY_RIGHT_SUPER: return "Right Super";
-    case GLFW_KEY_MENU: return "Menu";
-
-    case GLFW_KEY_F1: return "F1"; case GLFW_KEY_F2: return "F2";
-    case GLFW_KEY_F3: return "F3"; case GLFW_KEY_F4: return "F4";
-    case GLFW_KEY_F5: return "F5"; case GLFW_KEY_F6: return "F6";
-    case GLFW_KEY_F7: return "F7"; case GLFW_KEY_F8: return "F8";
-    case GLFW_KEY_F9: return "F9"; case GLFW_KEY_F10: return "F10";
-    case GLFW_KEY_F11: return "F11"; case GLFW_KEY_F12: return "F12";
-
-    case GLFW_KEY_KP_0: return "Numpad 0"; case GLFW_KEY_KP_1: return "Numpad 1";
-    case GLFW_KEY_KP_2: return "Numpad 2"; case GLFW_KEY_KP_3: return "Numpad 3";
-    case GLFW_KEY_KP_4: return "Numpad 4"; case GLFW_KEY_KP_5: return "Numpad 5";
-    case GLFW_KEY_KP_6: return "Numpad 6"; case GLFW_KEY_KP_7: return "Numpad 7";
-    case GLFW_KEY_KP_8: return "Numpad 8"; case GLFW_KEY_KP_9: return "Numpad 9";
-    case GLFW_KEY_KP_DECIMAL: return "Numpad ."; case GLFW_KEY_KP_DIVIDE: return "Numpad /";
-    case GLFW_KEY_KP_MULTIPLY: return "Numpad *"; case GLFW_KEY_KP_SUBTRACT: return "Numpad -";
-    case GLFW_KEY_KP_ADD: return "Numpad +"; case GLFW_KEY_KP_ENTER: return "Numpad Enter";
-    case GLFW_KEY_KP_EQUAL: return "Numpad =";
-
-    case GLFW_KEY_0: return ";";
-    case GLFW_KEY_1: return "1";
-    case GLFW_KEY_2: return "2";
-    case GLFW_KEY_3: return "3";
-    case GLFW_KEY_4: return "4";
-    case GLFW_KEY_5: return "5";
-    case GLFW_KEY_6: return "6";
-    case GLFW_KEY_7: return "7";
-    case GLFW_KEY_8: return "8";
-    case GLFW_KEY_9: return "9";
-    case 58: return "0";
+    switch (mod) {
+    case 0: modString = ""; break;
+    case 1: modString = "Shift + "; break;
+    case 2: modString = "Ctrl + "; break;
+    case 3: modString = "Ctrl + Shift+ "; break;
+    case 4: modString = "Alt + "; break;
+    case 5: modString = "Alt + Shift + "; break;
+    case 6: modString = "Ctrl + Alt + "; break;
+    case 7: modString = "Ctrl + Alt + Shift + "; break;
     }
-    const char* name = glfwGetKeyName(key, 0);
-    if (name) return name;
-    return "ERROR";
+    const char* name = nullptr;
+    if (key >= 65) {
+        name = glfwGetKeyName(key, 0);
+    }
+    if (name!=nullptr) { keyString = name; }
+    else {
+        switch (key) {
+        case GLFW_MOUSE_BUTTON_LEFT: keyString = "Mouse left"; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: keyString = "Mouse middle"; break;
+        case GLFW_MOUSE_BUTTON_RIGHT: keyString = "Mouse right"; break;
+        case GLFW_KEY_SPACE: keyString = "Space"; break;
+        case GLFW_KEY_ESCAPE: keyString = "Escape"; break;
+        case GLFW_KEY_ENTER: keyString = "Enter"; break;
+        case GLFW_KEY_TAB: keyString = "Tab"; break;
+        case GLFW_KEY_BACKSPACE: keyString = "Backspace"; break;
+        case GLFW_KEY_INSERT: keyString = "Insert"; break;
+        case GLFW_KEY_DELETE: keyString = "Delete"; break;
+        case GLFW_KEY_RIGHT: keyString = "Right Arrow"; break;
+        case GLFW_KEY_LEFT: keyString = "Left Arrow"; break;
+        case GLFW_KEY_DOWN: keyString = "Down Arrow"; break;
+        case GLFW_KEY_UP: keyString = "Up Arrow"; break;
+        case GLFW_KEY_PAGE_UP: keyString = "Page Up"; break;
+        case GLFW_KEY_PAGE_DOWN: keyString = "Page Down"; break;
+        case GLFW_KEY_HOME: keyString = "Home"; break;
+        case GLFW_KEY_END: keyString = "End"; break;
+        case GLFW_KEY_CAPS_LOCK: keyString = "Caps Lock"; break;
+        case GLFW_KEY_SCROLL_LOCK: keyString = "Scroll Lock"; break;
+        case GLFW_KEY_NUM_LOCK: keyString = "Num Lock"; break;
+        case GLFW_KEY_PRINT_SCREEN: keyString = "Print Screen"; break;
+        case GLFW_KEY_PAUSE: keyString = "Pause"; break;
+        case GLFW_KEY_LEFT_SHIFT: keyString = "Left Shift"; break;
+        case GLFW_KEY_LEFT_CONTROL: keyString = "Left Ctrl"; break;
+        case GLFW_KEY_LEFT_ALT: keyString = "Left Alt"; break;
+        case GLFW_KEY_LEFT_SUPER: keyString = "Left Super"; break;
+        case GLFW_KEY_RIGHT_SHIFT: keyString = "Right Shift"; break;
+        case GLFW_KEY_RIGHT_CONTROL: keyString = "Right Ctrl"; break;
+        case GLFW_KEY_RIGHT_ALT: keyString = "Right Alt"; break;
+        case GLFW_KEY_RIGHT_SUPER: keyString = "Right Super"; break;
+        case GLFW_KEY_MENU: keyString = "Menu"; break;
+
+        case GLFW_KEY_F1: keyString = "F1"; break;
+        case GLFW_KEY_F2: keyString = "F2"; break;
+        case GLFW_KEY_F3: keyString = "F3"; break;
+        case GLFW_KEY_F4: keyString = "F4"; break;
+        case GLFW_KEY_F5: keyString = "F5"; break;
+        case GLFW_KEY_F6: keyString = "F6"; break;
+        case GLFW_KEY_F7: keyString = "F7"; break;
+        case GLFW_KEY_F8: keyString = "F8"; break;
+        case GLFW_KEY_F9: keyString = "F9"; break;
+        case GLFW_KEY_F10: keyString = "F10"; break;
+        case GLFW_KEY_F11: keyString = "F11"; break;
+        case GLFW_KEY_F12: keyString = "F12"; break;
+
+        case GLFW_KEY_KP_0: keyString = "Numpad 0"; break;
+        case GLFW_KEY_KP_1: keyString = "Numpad 1"; break;
+        case GLFW_KEY_KP_2: keyString = "Numpad 2"; break;
+        case GLFW_KEY_KP_3: keyString = "Numpad 3"; break;
+        case GLFW_KEY_KP_4: keyString = "Numpad 4"; break;
+        case GLFW_KEY_KP_5: keyString = "Numpad 5"; break;
+        case GLFW_KEY_KP_6: keyString = "Numpad 6"; break;
+        case GLFW_KEY_KP_7: keyString = "Numpad 7"; break;
+        case GLFW_KEY_KP_8: keyString = "Numpad 8"; break;
+        case GLFW_KEY_KP_9: keyString = "Numpad 9"; break;
+
+        case GLFW_KEY_KP_DECIMAL: keyString = "Numpad ."; break;
+        case GLFW_KEY_KP_DIVIDE: keyString = "Numpad /"; break;
+        case GLFW_KEY_KP_MULTIPLY: keyString = "Numpad *"; break;
+        case GLFW_KEY_KP_SUBTRACT: keyString = "Numpad -"; break;
+        case GLFW_KEY_KP_ADD: keyString = "Numpad +"; break;
+        case GLFW_KEY_KP_ENTER: keyString = "Numpad Enter"; break;
+        case GLFW_KEY_KP_EQUAL: keyString = "Numpad ="; break;
+
+        case GLFW_KEY_SEMICOLON: keyString = ";"; break;
+        case GLFW_KEY_1: keyString = "1"; break;
+        case GLFW_KEY_2: keyString = "2"; break;
+        case GLFW_KEY_3: keyString = "3"; break;
+        case GLFW_KEY_4: keyString = "4"; break;
+        case GLFW_KEY_5: keyString = "5"; break;
+        case GLFW_KEY_6: keyString = "6"; break;
+        case GLFW_KEY_7: keyString = "7"; break;
+        case GLFW_KEY_8: keyString = "8"; break;
+        case GLFW_KEY_9: keyString = "9"; break;
+        case GLFW_KEY_0: keyString = "0"; break;
+        }
+    }
+    
+    return (modString+keyString);
 }

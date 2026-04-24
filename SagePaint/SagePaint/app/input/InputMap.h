@@ -6,16 +6,20 @@
 enum Key_Context_Enum {
 	
 	KEY_CONTEXT_DEFAULT = 0,
-	KEY_CONTEXT_UI = 1,
-	KEY_CONTEXT_ANIMATION = 2
+	KEY_CONTEXT_SHIFT = 1,
+	KEY_CONTEXT_CTRL = 2,
+	KEY_CONTEXT_CTRL_SHIFT = 3,
+	KEY_CONTEXT_ALT = 4,
+	KEY_CONTEXT_ALT_SHIFT = 5,
+	KEY_CONTEXT_CTRL_ALT = 6,
+	KEY_CONTEXT_CTRL_ALT_SHIFT = 7
+
 };
 
 
 struct KeyFunction {
 
-	//i need to add some kind of structure to get these functions from using strings,ints or some other type I can put into a json
-	// maybe a simple <
-	void (*func)();
+	void (*func)(); 
 	Key_Context_Enum context;//maybe not the best? meh ( using a longs individual bits would allow for 64 contexts at once )
 	int priority;//might not use
 	
@@ -51,7 +55,7 @@ public:
 	//research what the best way to do default is, when it needs to be part of the program, not some default.kmap file
 	void Default(int defaultType /*my, krita-like, no shortcut version(needs to be 0) etc...*/);//calls init() if map is empty, then fills the keymap with default values
 	
-	bool Action(int key, int action, int mods); //call KeyFunctions etc etc
+	bool Action(int key, int action); //call KeyFunctions etc etc
 	KeyAction GetKey(int key);
 	static void SetContext(Key_Context_Enum keyContext);
 };
