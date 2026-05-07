@@ -27,7 +27,11 @@ void ShaderManager::Init()
 {
 	ShaderPtr basic_vert = std::make_shared<Shader>("./shaders/standard.vert");
 	
-	
+	ShaderPtr basic_frag = std::make_shared<Shader>("./shaders/standard.frag");
+	Create("STANDARD", basic_vert, basic_frag);
+	basic_frag->Dispose();
+
+
 	ShaderPtr canvas_compositing_normal = std::make_shared<Shader>("./shaders/canvas/compositing/normal.frag");
 	Create("CANVAS_COMPOSITE_NORMAL", basic_vert, canvas_compositing_normal);
 	canvas_compositing_normal->Dispose();

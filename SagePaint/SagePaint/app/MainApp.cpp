@@ -8,10 +8,11 @@
 #include "ui/UIManager.h"
 #include "graphics/ShaderManager.h"
 #include "SettingsManager.h"
+#include "graphics/DragPointObject.h"
 //InputManagerPtr inputManager = std::make_shared<InputManager>();
 //CanvasManagerPtr canvasManager = std::make_shared<CanvasManager>();
 
-CanvasObjectPtr go;
+std::vector<GameObjectPtr> go;
 bool runApp = true;
 
 static void error_callback(int error, const char* description)
@@ -96,9 +97,15 @@ void MainApp() {
 	ShaderManager::Init();
 	//'start()'
 	CanvasManager::obj= std::make_shared<CanvasObject>();
-	go = CanvasManager::obj;
+	go.push_back(CanvasManager::obj);
 
+/*
+	go.push_back(std::make_shared<DragPointObject>());
+	go[1]->pos = { 300,300,0};
 
+	go.push_back(std::make_shared<DragPointObject>());
+	go[2]->pos = { 600,600,0 };
+	*/
 	InputManager::Init();
 
 	SettingsManager::LoadConfig();
@@ -109,6 +116,8 @@ void MainApp() {
 	//ProjectManager::Open("C:\\temp\\new.sagepaint"); //recent?
 	UIManager::Init();
 	ToolManager::Init();
+
+	ProjectManager::Init();
 
 	SettingsManager::LoadRecentProjectPaths();
 	if (SettingsManager::openLatest) {
@@ -137,7 +146,8 @@ void MainApp() {
 	//put this into a call you'll do as part of canvasManager
 	*/
 
-	//TODO: put into a function
+
+
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	Screen_width = (float)width;
@@ -267,8 +277,11 @@ void MainApp() {
 		}
 
 		//render objects
-		go->Draw();
+		for (int i = 0; i < go.size(); i++) {
+			go[i]->Draw();
 
+		}
+		
 		//render UI
 		
 		//allows drawing directly

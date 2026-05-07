@@ -1,5 +1,7 @@
 #include "UIManager.h"
 #include <imgui.h>
+
+
 #include "../tools/ToolManager.h"
 #include "../CanvasManager.h"
 #include <algorithm>
@@ -52,8 +54,7 @@ bool UIManager::ShowUI()
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-	ImGui::Text("The right menu");
-	if (ImGui::ColorEdit4("My Color", (float*)&CanvasManager::colorFloat)) {
+	if (ImGui::ColorEdit4("Color", (float*)&CanvasManager::colorFloat)) {
 		CanvasManager::UpdateColor();
 	}
 	

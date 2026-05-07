@@ -2,6 +2,7 @@
 #include <string>
 class ProjectManager {
 public:
+	static void Init();
 	static bool dirty;
 	static std::string name;
 	static std::string description;

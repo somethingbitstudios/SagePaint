@@ -15,7 +15,8 @@
 #include "./drawables/Model.h"  
 enum GO_Type {
 	GO_DEFAULT,
-	GO_CANVAS
+	GO_CANVAS,
+	GO_DRAGPOINT
 };
 
 class GameObject {

@@ -2,8 +2,11 @@
 #include <debug.h>
 #include <imgui.h>
 
-#include "imgui.h"
 #include "imgui_stdlib.h" 
+
+//#include "imfilebrowser.h"
+#include "ImFileDialog.h"
+
 #include "CanvasManager.h"
 #include <filesystem>
 #include <fstream>
@@ -11,10 +14,12 @@
 #include "stb_image.h"
 #include <nlohmann/json.hpp>
 
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include "SettingsManager.h"
+
+
+
 
 enum ProjectAction {
 	NONE,
@@ -32,6 +37,8 @@ std::string ProjectManager::description = "...";
 bool ProjectManager::projectDataDirty = false;
 std::string ProjectManager::fullPath = "C:\\temp\\new.sagepaint";
 
+//ImGui::FileBrowser openFileDialog(ImGuiFileBrowserFlags_ConfirmOnEnter|ImGuiFileBrowserFlags_CloseOnEsc|ImGuiFileBrowserFlags_CreateNewDir|ImGuiFileBrowserFlags_EditPathString|ImGuiFileBrowserFlags_SelectDirectory,ProjectManager::fullPath);
+//ImGui::FileBrowser saveFileDialog;
 
 ProjectAction bufferedAction = NONE;
 std::string bufferedPath = "";
@@ -131,10 +138,26 @@ bool ProjectManager::ShowFileUI()
 		if (ImGui::MenuItem("Project info")) {
 			show_project_window = true;
 		}
+		if (ImGui::MenuItem("FileDiag test")) {
+			//openFileDialog.Open();
+			ifd::FileDialog::Instance().Open("TextureOpenDialog", "Open a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 
+
+		}
 
 		ImGui::EndMenu();
 	}
+
+	if (ifd::FileDialog::Instance().IsDone("TextureOpenDialog")) {
+		if (ifd::FileDialog::Instance().HasResult()) {
+			std::filesystem::path p = ifd::FileDialog::Instance().GetResult();
+		
+		DLOG("path: " << p.string())
+		}
+		ifd::FileDialog::Instance().Close();
+	}
+
+
 		if (show_new_popup)
 		{
 			ImGui::OpenPopup("Save before new?");
@@ -150,22 +173,32 @@ bool ProjectManager::ShowFileUI()
 			save_filename = fullPath;
 		}
 		if (show_save_popup) {
-			ImGui::OpenPopup("Save As?");
+			//ImGui::OpenPopup("Save As?");
+			ifd::FileDialog::Instance().Open("SaveDiag", "Save a project", "", false, fullPath);
+
 			show_save_popup = false;
 
 			save_filename = fullPath;
 		}
 		if (show_open_popup) {
-			ImGui::OpenPopup("Open project");
+			//ImGui::OpenPopup("Open project");
+			ifd::FileDialog::Instance().Open("OpenDiag",
+				"Open a project or image",
+				"File (*.sagepaint,*.png,*.jpg,*.jpeg){.sagepaint,.png,.jpg,.jpeg},.*",false,fullPath
+			);
+
 			show_open_popup = false;
 			open_filename = fullPath;
-		}if (show_opensave_popup) {
+		}
+		if (show_opensave_popup) {
 			ImGui::OpenPopup("Save before Opening?");
 			show_opensave_popup = false;
 			open_filename = fullPath;
 		}
 		if (show_export_popup) {
-			ImGui::OpenPopup("Export image to:");
+			//ImGui::OpenPopup("Export image to:");
+			ifd::FileDialog::Instance().Open("ExportDiag", "Export a project to image", "Image file (*.png;*.jpg;*.jpeg){.png,.jpg,.jpeg},.*", false, fullPath);
+
 			show_export_popup = false;
 			export_filename = fullPath;
 			
@@ -264,6 +297,57 @@ bool ProjectManager::ShowFileUI()
 			ImGui::EndPopup();
 		}
 
+		//EXPORT2
+		if (ifd::FileDialog::Instance().IsDone("ExportDiag")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::filesystem::path p = ifd::FileDialog::Instance().GetResult();
+
+				CanvasManager::Export(export_filename);
+				DLOG("path: " << p.string())
+			}
+			ifd::FileDialog::Instance().Close();
+		}
+		//OPEN2
+		if (ifd::FileDialog::Instance().IsDone("OpenDiag")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::filesystem::path p = ifd::FileDialog::Instance().GetResult();
+				Open(p.string());
+				fullPath = p.string();
+				DLOG("path: " << p.string())
+			}
+			ifd::FileDialog::Instance().Close();
+		}
+		//SAVE2
+		if (ifd::FileDialog::Instance().IsDone("SaveDiag")) {
+			if (ifd::FileDialog::Instance().HasResult()) {
+				std::filesystem::path p = ifd::FileDialog::Instance().GetResult();
+				Save(p.string());
+				fullPath = p.string();
+				SettingsManager::SaveProjectPathToRecent();
+				if (bufferedAction == OPEN) {
+					bufferedAction = NONE;
+					show_open_popup = true;
+					open_filename = fullPath;
+				}
+				else if (bufferedAction == EXIT) {//TODO:let save be save OR save as
+					bufferedAction = NONE;
+
+					save_filename = fullPath;
+
+					ImGui::CloseCurrentPopup();
+
+					ImGui::EndPopup();
+					return false;
+				}
+				else if (bufferedAction == NEW) {
+					bufferedAction = NONE;
+					save_filename = fullPath;
+					New();
+
+				}
+			}
+			ifd::FileDialog::Instance().Close();
+		}
 		//OPEN
 		if (ImGui::BeginPopupModal("Open project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -290,9 +374,9 @@ bool ProjectManager::ShowFileUI()
 			ImGui::EndPopup();
 		}
 
+
 		//SAVEAS
 		
-
 
 		if (ImGui::BeginPopupModal("Save As?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -632,6 +716,9 @@ bool ProjectManager::Open(std::string path)
 			CanvasManager::obj->AddLayer(image);
 
 		}
+		else {
+			IDLOG("ERROR: invalid file! Open folder instead if opening .conf")
+		}
 	}
 	else if (fs::is_directory(targetPath)) {
 		fs::path dataDir = targetPath / "data" / "";
@@ -742,4 +829,34 @@ bool ProjectManager::Clear()
 void ProjectManager::Dirty()
 {
 	dirty = true;
+}
+void ProjectManager::Init(){
+	
+	//openFileDialog.SetTitle("Open file");
+	
+	//openFileDialog.SetTypeFilters({ ".h", ".cpp" });
+	//saveFileDialog.SetTitle("Save file");
+	//openFileDialog.SetTypeFilters({ ".h", ".cpp" });
+
+	ifd::FileDialog::Instance().CreateTexture = [](uint8_t* data, int w, int h, char fmt) -> void* {
+		GLuint tex;
+
+		glGenTextures(1, &tex);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, (fmt == 0) ? GL_BGRA : GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		return (void*)tex;
+		};
+	ifd::FileDialog::Instance().DeleteTexture = [](void* tex) {
+		GLuint texID = (GLuint)((uintptr_t)tex);
+		glDeleteTextures(1, &texID);
+		};
+
+
 }
