@@ -36,6 +36,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	//	DLOG("what")
 	//}
 }
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	// yoffset is positive when scrolling up/away and negative when scrolling down/toward
+	if (yoffset > 0) {
+		InputManager::Input(10, 0,-1);
+	}
+	else if (yoffset < 0) {
+		InputManager::Input(11, 0, -1);
+	}
+}
 //I prefer calling it directly so it always updates even when staying still
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -48,7 +58,7 @@ void MainApp() {
 	IDLOG("----------------------------------<[DEBUG_MODE]>----------------------------------")
 	IDLOG("IMPORTANT IDLOG MESSAGES ENABLED")
 	DLOG("GRANULAR DLOG MESSAGES ENABLED")
-	IDLOG("version: 0.64\n")
+	IDLOG("version: 1.05\n")
 
 
 
@@ -73,7 +83,7 @@ void MainApp() {
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, cursor_position_callback);
-
+	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
 	glfwMakeContextCurrent(window);

@@ -8,7 +8,7 @@
 #include "../ProjectManager.h"
 #include "Icons.h"
 #include "../SettingsManager.h"
-
+ 
 CursorFocus UIManager::cursor_focus = FOCUS_CANVAS;
 
 
@@ -53,7 +53,7 @@ bool UIManager::ShowUI()
 	ImGui::Begin("RightMenu", nullptr,
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-
+	ImGui::Text("Tool color:");
 	if (ImGui::ColorEdit4("Color", (float*)&CanvasManager::colorFloat)) {
 		CanvasManager::UpdateColor();
 	}
@@ -120,7 +120,7 @@ bool UIManager::ShowUI()
 
 		}
 
-		const char* blend_modes[] = { "Normal", "Darken", "Lighten","Add","Multiply"};
+		const char* blend_modes[] = { "Normal", "Darken", "Lighten","Add","Multiply"}; 
 
 		if (ImGui::Combo("Blend", &((*CanvasManager::obj->layers)[i]->blendCandidate), blend_modes, IM_ARRAYSIZE(blend_modes))) {
 

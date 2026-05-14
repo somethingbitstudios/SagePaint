@@ -22,9 +22,36 @@ void ToolManager::Init() {
 	Icons::AddIcon("./icons/tool_fill40.png", icons);
 	Icons::AddIcon("./icons/tool_select40.png", icons);
 	Icons::AddIcon("./icons/tool_picker40.png", icons);
+	Icons::AddIcon("./icons/tool_eraser40.png", icons);
 }
 void ToolManager::ShowUI() {
 	ImGui::Text("Tools:");
+	if (CanvasManager::erase) {
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+	else {
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+	}
+
+	if (ImGui::ImageButton(
+		"SetEraserButton",
+		icons[6],
+		ImVec2(40, 40),			//size
+		ImVec2(0.0f, 0.0f),     //uv0
+		ImVec2(1.0f, 1.0f),     //uv1
+		ImVec4(0.1, 0.1, 0.1, 1)//bg color
+	)) {
+		CanvasManager::erase = !CanvasManager::erase;
+	}
+
+	
+		ImGui::PopStyleColor(2);
+
+		ImGui::SameLine();
+		ImGui::Text("Erase mode: (toggle)"); 
+		ImGui::Text("Select tool:");
 	if (ImGui::ImageButton(
 		"SetToPencilButton",
 		icons[0],
@@ -112,7 +139,5 @@ void ToolManager::ShowUI() {
 	}
 
 	ImGui::Separator();
-	if (ImGui::Button(CanvasManager::erase ? "Stop erasing" : "Start erasing")) {
-		CanvasManager::erase = !CanvasManager::erase;
-	}
+	
 }

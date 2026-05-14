@@ -20,7 +20,7 @@ public:
 	static void LoadConfig(const nlohmann::json& j);
 	static void ShapeEnd();
 	static int pointNumber;
-	static float angleOffset;
+	static float angleOffset; 
 	static float opacity;
 private:
 	static glm::ivec2 downPos;

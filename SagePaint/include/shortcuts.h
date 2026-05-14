@@ -9,5 +9,6 @@
 //#define mshared(C, ...) std::make_shared<C>(__VA_ARGS__)
 //#define dcast(C,shared_ptr_object) dynamic_cast<C*>(shared_ptr_object.get())
 //#define scast(C,shared_ptr_object) (static_cast<C*>(shared_ptr_object.get()))
-
+#define GLFW_SCROLL_UP 10
+#define GLFW_SCROLL_DOWN 11
 #endif

@@ -30,13 +30,13 @@ void FillTool::Fill() {
     }
 	ImagePtr image = (*CanvasManager::obj->layers)[CanvasManager::obj->selectedLayer]->image;//WARN:hardcoded!
 	
-	FillTool::FillRender(image->texture, image->width, image->height, upPos.x,upPos.y,color);
+	FillTool::FillRender(image->texture, image->width, image->height, upPos.x,upPos.y,color,mode);
 	
 	CanvasManager::obj->Changed(CanvasManager::obj->selectedLayer);
     ProjectManager::Dirty();
 
 }
-void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, unsigned char color[4]) {
+void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, unsigned char color[4],FillMode fm) {
     if (w <= 0 || h <= 0 || x < 0 || x >= w || y < 0 || y >= h) return;
     int startIdx = (y * w + x) * 4;
 
@@ -95,45 +95,107 @@ void FillTool::FillRender(unsigned char* texture, int w, int h, int x, int y, un
         */
         };
 
-    
-    std::queue<std::pair<int, int>> q;
+    switch (fm) {
+    case FILL_4WAY: {
+        std::queue<std::pair<int, int>> q;
 
-    setPixelColor(x, y);
-    q.push({ x, y });
+        setPixelColor(x, y);
+        q.push({ x, y });
 
-    while (!q.empty()) {
-        auto [cx, cy] = q.front();
-        q.pop();
+        while (!q.empty()) {
+            auto [cx, cy] = q.front();
+            q.pop();
 
-        
-        //left
-        if (cx > 0 && isTargetColor(cx - 1, cy)) {
-            bool result = setPixelColor(cx - 1, cy);
-            if(result) q.push({ cx - 1, cy });
+
+            //left
+            if (cx > 0 && isTargetColor(cx - 1, cy)) {
+                bool result = setPixelColor(cx - 1, cy);
+                if (result) q.push({ cx - 1, cy });
+            }
+            //right
+            if (cx < w - 1 && isTargetColor(cx + 1, cy)) {
+                bool result = setPixelColor(cx + 1, cy);
+                if (result) q.push({ cx + 1, cy });
+            }
+            //up
+            if (cy > 0 && isTargetColor(cx, cy - 1)) {
+                bool result = setPixelColor(cx, cy - 1);
+                if (result) q.push({ cx, cy - 1 });
+            }
+            //down
+            if (cy < h - 1 && isTargetColor(cx, cy + 1)) {
+                bool result = setPixelColor(cx, cy + 1);
+                if (result) q.push({ cx, cy + 1 });
+            }
         }
-        //right
-        if (cx < w - 1 && isTargetColor(cx + 1, cy)) {
-            bool result = setPixelColor(cx + 1, cy);
-            if (result) q.push({ cx + 1, cy });
-        }
-        //up
-        if (cy > 0 && isTargetColor(cx, cy - 1)) {
-            bool result = setPixelColor(cx, cy - 1);
-            if (result) q.push({ cx, cy - 1 });
-        }
-        //down
-        if (cy < h - 1 && isTargetColor(cx, cy + 1)) {
-            bool result = setPixelColor(cx, cy + 1);
-            if (result) q.push({ cx, cy + 1 });
-        }
+        break;
     }
+    case FILL_SCANLINE: {
+        // Wrapper for bounds and target color checking
+        auto Inside = [&](int px, int py) {
+            if (px < 0 || px >= w || py < 0 || py >= h) return false;
+            return isTargetColor(px, py);
+            };
+
+        if (!Inside(x, y)) break;
+
+        // Vector used as a LIFO stack for the scanline spans
+        std::vector<std::pair<int, int>> s;
+        s.push_back({ x, y });
+
+        auto scan = [&](int lx, int rx, int py) {
+            if (py < 0 || py >= h) return;
+            bool span_added = false;
+            for (int px = lx; px <= rx; ++px) {
+                if (!Inside(px, py)) {
+                    span_added = false;
+                }
+                else if (!span_added) {
+                    s.push_back({ px, py });
+                    span_added = true;
+                }
+            }
+            };
+
+        while (!s.empty()) {
+            auto [cx, cy] = s.back();
+            s.pop_back();
+
+            int lx = cx;
+            while (Inside(lx - 1, cy)) {
+                setPixelColor(lx - 1, cy);
+                lx = lx - 1;
+            }
+
+            int current_x = cx;
+            while (Inside(current_x, cy)) {
+                setPixelColor(current_x, cy);
+                current_x = current_x + 1;
+            }
+
+            // 'current_x - 1' is the rightmost pixel of the current span
+            scan(lx, current_x - 1, cy + 1);
+            scan(lx, current_x - 1, cy - 1);
+        }
+        break;
+    }
+        }
+   
 }
 float FillTool::opacity = 1;
+
+FillMode FillTool::mode = FILL_4WAY;
 void FillTool::ShowUI() {
     ImGui::Separator();
     ImGui::Text("Fill Settings:");
     if (ImGui::InputFloat("opacity", &opacity, 0.1f, 0.2f, "%.2f")) {
         opacity = std::max(0.0f, std::min(1.0f, opacity));
+    }
+    const char* fill_modes[] = { "Scanline", "4way" };
+    static int temp_mode = (int)mode;
+    if (ImGui::Combo("Mode", &(temp_mode), fill_modes, IM_ARRAYSIZE(fill_modes))) {
+
+        mode = (FillMode)temp_mode;
     }
 
 }

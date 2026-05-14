@@ -191,6 +191,9 @@ void InputManager::LoadInputMap(std::string path) {
 
 }
 void InputManager::Input(int key, int action, int mods) {
+    if (mods < 0) {
+        mods = modsPersistent;
+    }
     key += mods * 1000;
 	//key.held = true;
 	if (action==1) {
@@ -267,6 +270,10 @@ std::string InputManager::GetGLFWKeyName(int key) {
         case GLFW_MOUSE_BUTTON_LEFT: keyString = "Mouse left"; break;
         case GLFW_MOUSE_BUTTON_MIDDLE: keyString = "Mouse middle"; break;
         case GLFW_MOUSE_BUTTON_RIGHT: keyString = "Mouse right"; break;
+        
+        case 10: keyString = "Mouse wheel up"; break;
+        case 11: keyString = "Mouse wheel down"; break;
+
         case GLFW_KEY_SPACE: keyString = "Space"; break;
         case GLFW_KEY_ESCAPE: keyString = "Escape"; break;
         case GLFW_KEY_ENTER: keyString = "Enter"; break;

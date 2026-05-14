@@ -21,6 +21,6 @@ void main()
 
     vec3 background = mix(vec3(0.975), vec3(0.8), checker);
   
-  fragment = vec4(texel.rgb + background * (1.0 - texel.a), 1.0); 
+  fragment = vec4(texel.rgb * texel.a + background * (1.0 - texel.a), 1.0); 
 
 }

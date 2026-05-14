@@ -39,6 +39,8 @@ static unsigned char pingpong = 0;
 static ShaderProgramPtr shader_composite_normal;
 static ShaderProgramPtr shader_composite_lighten;
 static ShaderProgramPtr shader_composite_darken;
+static ShaderProgramPtr shader_composite_add;
+static ShaderProgramPtr shader_composite_multiply;
 static ShaderProgramPtr shader_final;
 
 void CanvasModel::Changed() {
@@ -277,6 +279,8 @@ CanvasModel::CanvasModel() :Model() {
  		shader_composite_normal = ShaderManager::Get("CANVAS_COMPOSITE_NORMAL");
  		shader_composite_darken = ShaderManager::Get("CANVAS_COMPOSITE_DARKEN");
  		shader_composite_lighten = ShaderManager::Get("CANVAS_COMPOSITE_LIGHTEN");
+ 		shader_composite_add = ShaderManager::Get("CANVAS_COMPOSITE_ADD");
+ 		shader_composite_multiply = ShaderManager::Get("CANVAS_COMPOSITE_MULTIPLY");
 	
 		shader_final = ShaderManager::Get("CANVAS_FINAL");
 
@@ -386,6 +390,14 @@ void CanvasModel::DrawFbo() {
 				break;
 			case BLEND_Lighten:
 				active_shader_id = shader_composite_lighten->id;
+				change(active_shader_id);
+				break;
+			case BLEND_Add:
+				active_shader_id = shader_composite_add->id;
+				change(active_shader_id);
+				break;
+			case BLEND_Multiply:
+				active_shader_id = shader_composite_multiply->id;
 				change(active_shader_id);
 				break;
 			default:

@@ -1,6 +1,7 @@
 #include "InputMap.h"
 #include <GLFW/glfw3.h>
 #include "InputFunctions.h"
+#include <shortcuts.h>
 
 
 
@@ -31,6 +32,9 @@ void InputMap::Init() {
 		keyMap[0+j] = KeyAction{};//mouse left
 		keyMap[1+j] = KeyAction{};//mouse middle
 		keyMap[2+j] = KeyAction{};//mouse right
+
+		keyMap[10 + j] = KeyAction{};//mouse scroll up
+		keyMap[11 + j] = KeyAction{};//mouse scroll down
 	}
 		
 	
@@ -194,16 +198,16 @@ void InputMap::Default(int defaultType) {
 		GLFW_KEY_LEFT_ALT
 		GLFW_KEY_RIGHT_ALT
 		*/
+		//WARN: the UI consumes scrolling, so it sucks to bind it
+		keyMap[GLFW_SCROLL_UP].mode = false; //not additive, override
 
-		keyMap[GLFW_KEY_W].mode = false; //not additive, override
+		InitKeyFunction(GLFW_SCROLL_UP, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomIn");
+		keyMap[GLFW_SCROLL_UP].funcsRelease.emplace_back(a);
 
-		InitKeyFunction(GLFW_KEY_W, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomOut");
-		keyMap[GLFW_KEY_W].funcs.emplace_back(a);
+		keyMap[GLFW_SCROLL_DOWN].mode = true; //not additive, override
 
-		keyMap[GLFW_KEY_S].mode = true; //not additive, override
-
-		InitKeyFunction(GLFW_KEY_S, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomIn");
-		keyMap[GLFW_KEY_S].funcs.emplace_back(a);
+		InitKeyFunction(GLFW_SCROLL_DOWN, 0, &a, 0, KEY_CONTEXT_DEFAULT, "ZoomOut");
+		keyMap[GLFW_SCROLL_DOWN].funcsRelease.emplace_back(a);
 
 		
 		break;
