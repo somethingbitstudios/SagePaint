@@ -103,7 +103,7 @@ void CanvasModel::ResChange(unsigned int rX, unsigned int rY) {
 	
 }
 void CanvasModel::DeleteFBO() {
-	if (compositeTexture[0] != 0) {
+	if (compositeTexture[0] != 0) { 
 		glDeleteTextures(2, compositeTexture);
 		compositeTexture[0] = 0;
 		compositeTexture[1] = 0;

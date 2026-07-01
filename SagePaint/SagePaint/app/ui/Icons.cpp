@@ -17,5 +17,5 @@ void Icons::AddIcon(std::string path,std::vector<ImTextureID> &vec) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, image->texture);
 
-	vec.push_back((void*)(intptr_t)texId);
+	vec.push_back(texId);
 }
