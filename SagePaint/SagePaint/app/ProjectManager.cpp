@@ -5,7 +5,8 @@
 #include "imgui_stdlib.h" 
 
 //#include "imfilebrowser.h"
-#include "ImFileDialog.h"
+
+	//#include "ImFileDialog.h"
 
 #include "CanvasManager.h"
 #include <filesystem>
@@ -140,7 +141,7 @@ bool ProjectManager::ShowFileUI()
 		}
 		if (ImGui::MenuItem("FileDiag test")) {
 			//openFileDialog.Open();
-			ifd::FileDialog::Instance().Open("TextureOpenDialog", "Open a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+			//ifd::FileDialog::Instance().Open("TextureOpenDialog", "Open a texture", "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 
 
 		}
@@ -148,14 +149,14 @@ bool ProjectManager::ShowFileUI()
 		ImGui::EndMenu();
 	}
 
-	if (ifd::FileDialog::Instance().IsDone("TextureOpenDialog")) {
+	/*if (ifd::FileDialog::Instance().IsDone("TextureOpenDialog")) {
 		if (ifd::FileDialog::Instance().HasResult()) {
 			std::filesystem::path p = ifd::FileDialog::Instance().GetResult();
 		
 		DLOG("path: " << p.string())
 		}
 		ifd::FileDialog::Instance().Close();
-	}
+	}*/
 
 
 		if (show_new_popup)
@@ -174,7 +175,7 @@ bool ProjectManager::ShowFileUI()
 		}
 		if (show_save_popup) {
 			//ImGui::OpenPopup("Save As?");
-			ifd::FileDialog::Instance().Open("SaveDiag", "Save a project", "", false, fullPath);
+			//ifd::FileDialog::Instance().Open("SaveDiag", "Save a project", "", false, fullPath);
 
 			show_save_popup = false;
 
@@ -182,10 +183,10 @@ bool ProjectManager::ShowFileUI()
 		}
 		if (show_open_popup) {
 			//ImGui::OpenPopup("Open project");
-			ifd::FileDialog::Instance().Open("OpenDiag",
+			/*ifd::FileDialog::Instance().Open("OpenDiag",
 				"Open a project or image",
 				"File (*.sagepaint,*.png,*.jpg,*.jpeg){.sagepaint,.png,.jpg,.jpeg},.*",false,fullPath
-			);
+			);*/
 
 			show_open_popup = false;
 			open_filename = fullPath;
@@ -197,7 +198,7 @@ bool ProjectManager::ShowFileUI()
 		}
 		if (show_export_popup) {
 			//ImGui::OpenPopup("Export image to:");
-			ifd::FileDialog::Instance().Open("ExportDiag", "Export a project to image", "Image file (*.png;*.jpg;*.jpeg){.png,.jpg,.jpeg},.*", false, fullPath);
+			//ifd::FileDialog::Instance().Open("ExportDiag", "Export a project to image", "Image file (*.png;*.jpg;*.jpeg){.png,.jpg,.jpeg},.*", false, fullPath);
 
 			show_export_popup = false;
 			export_filename = fullPath;
@@ -298,7 +299,7 @@ bool ProjectManager::ShowFileUI()
 		}
 
 		//EXPORT2
-		if (ifd::FileDialog::Instance().IsDone("ExportDiag")) {
+		/*if (ifd::FileDialog::Instance().IsDone("ExportDiag")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
 				std::filesystem::path p = ifd::FileDialog::Instance().GetResult();
 
@@ -347,7 +348,7 @@ bool ProjectManager::ShowFileUI()
 				}
 			}
 			ifd::FileDialog::Instance().Close();
-		}
+		}*/
 		//OPEN
 		if (ImGui::BeginPopupModal("Open project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -838,7 +839,7 @@ void ProjectManager::Init(){
 	//saveFileDialog.SetTitle("Save file");
 	//openFileDialog.SetTypeFilters({ ".h", ".cpp" });
 
-	ifd::FileDialog::Instance().CreateTexture = [](uint8_t* data, int w, int h, char fmt) -> void* {
+	/*ifd::FileDialog::Instance().CreateTexture = [](uint8_t* data, int w, int h, char fmt) -> void* {
 		GLuint tex;
 
 		glGenTextures(1, &tex);
@@ -858,5 +859,5 @@ void ProjectManager::Init(){
 		glDeleteTextures(1, &texID);
 		};
 
-
+		*/
 }
